@@ -23,3 +23,6 @@ export const GetOwnClass = () => ajax('/v1/class/own', 'GET')
 
 // 登记就餐数据 POST /v1/meals/record/:class_id
 export const RecordMealsData = (paths, data) => ajax(`/v1/meals/record/${paths.class_id}`, 'POST', null, data)
+
+// 查询就餐数据详情 GET /v1/meals/detail?page=3&page_size=10
+export const GetMealsDetail = (params) => ajax('/v1/meals/detail', 'GET', params, null)

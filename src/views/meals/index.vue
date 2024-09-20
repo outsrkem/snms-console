@@ -144,7 +144,7 @@ export default {
         loadRecordMealsData: function (class_id, data) {
             let paths = { class_id: class_id };
             RecordMealsData(paths, data)
-                .then((res) => {
+                .then(() => {
                     this.dialogVisible = false;
                     this.result.fromt = false;
                     this.result.result = true;
@@ -215,14 +215,14 @@ export default {
                 }
                 // 处理姓名并检测数目是否匹配
                 let namse = this.fromData.absent_diners;
-                const namseArr = namse === "" ? [] : namse.split(/\s+/);
-                if (namseArr.length != this.fromData.no_meal_num) {
-                    console.log(namseArr.length);
-                    console.log(namseArr);
+                const nameArr = namse === "" ? [] : namse.split(/\s+/);
+                if (nameArr.length != this.fromData.no_meal_num) {
+                    console.log(nameArr.length);
+                    console.log(nameArr);
                     this.checkmsg = "未就餐学生姓名与未就餐人数不匹配";
                     return;
                 }
-                this.data.absent_diners = namseArr.join(","); // 提交的数据，使用逗号隔开
+                this.data.absent_diners = nameArr.join(","); // 提交的数据，使用逗号隔开
 
                 // 显示弹框
                 this.dialogVisible = true;

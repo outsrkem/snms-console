@@ -4,6 +4,10 @@
             <div class="container-2">
                 <router-view />
             </div>
+            <div v-if="data != ''">
+                <h3>Internal Server Error</h3>
+                {{ data }}
+            </div>
         </div>
     </div>
 </template>
@@ -12,9 +16,16 @@
 import { Resume } from "@/api/index.js";
 export default {
     name: "App",
+    data() {
+        return { data: "" };
+    },
     methods: {
-        loadResume: async function () {
-            await Resume();
+        loadResume: function () {
+            Resume()
+                .then(() => {})
+                .catch((err) => {
+                    this.data = err.data;
+                });
         },
     },
     created() {
