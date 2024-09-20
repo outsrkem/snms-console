@@ -1,38 +1,53 @@
 <template>
     <div>
         <MyHeader title="登记就餐数据"></MyHeader>
-        <el-form label-position="top" label-width="auto" :model="fromData" :rules="rules" ref="meal-form">
-            <el-form-item label="就餐日期" prop="meal_date">
-                <el-date-picker
-                    v-model="fromData.meal_date"
-                    type="date"
-                    :editable="false"
-                    placeholder="日期"
-                    value-format="YYYY-MM-DD"
-                    :clearable="false"
-                />
-            </el-form-item>
-            <el-form-item label="就餐时段" prop="meal_period">
-                <el-radio-group v-model="fromData.meal_period">
-                    <el-radio border value="breakfast">早餐</el-radio>
-                    <el-radio border value="lunch">午餐</el-radio>
-                    <el-radio border value="dinner">晚餐</el-radio>
-                </el-radio-group>
-            </el-form-item>
-            <el-form-item label="应就餐人数" prop="expected_diners">
-                <el-input v-model.number="fromData.expected_diners" />
-            </el-form-item>
-            <el-form-item label="未就餐人数" prop="no_meal_num">
-                <el-input v-model.number="fromData.no_meal_num" />
-            </el-form-item>
-            <el-form-item label="未就餐学生" prop="absent_diners">
-                <el-input v-model="fromData.absent_diners" />
-            </el-form-item>
-        </el-form>
-        <div style="display: flex; justify-content: center; align-items: center">
-            <el-button style="width: 100%" size="large" type="primary" @click="onNextStep()">提交数据</el-button>
+        <div v-if="result.fromt">
+            <el-form label-position="top" label-width="auto" :model="fromData" :rules="rules" ref="meal-form">
+                <el-form-item label="选择班级">
+                    <el-select v-model="fromData.class_id">
+                        <el-option v-for="item in ownClass" :key="item.value" :label="item.name" :value="item.id" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="就餐日期" prop="meal_date">
+                    <el-date-picker
+                        v-model="fromData.meal_date"
+                        type="date"
+                        :editable="false"
+                        placeholder="日期"
+                        value-format="YYYY-MM-DD"
+                        :clearable="false"
+                    />
+                </el-form-item>
+                <el-form-item label="就餐时段" prop="meal_period">
+                    <el-radio-group v-model="fromData.meal_period">
+                        <el-radio border value="breakfast">早餐</el-radio>
+                        <el-radio border value="lunch">午餐</el-radio>
+                        <el-radio border value="dinner">晚餐</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item label="应就餐人数" prop="expected_diners">
+                    <el-input v-model.number="fromData.expected_diners" />
+                </el-form-item>
+                <el-form-item label="未就餐人数" prop="no_meal_num">
+                    <el-input v-model.number="fromData.no_meal_num" />
+                </el-form-item>
+                <el-form-item label="未就餐学生（用空格分隔）" prop="absent_diners">
+                    <el-input v-model="fromData.absent_diners" />
+                    <div v-if="checkmsg != ''">
+                        <el-text type="danger">{{ checkmsg }}</el-text>
+                    </div>
+                </el-form-item>
+            </el-form>
+
+            <div style="display: flex; justify-content: center; align-items: center">
+                <el-button style="width: 100%" size="large" type="primary" @click="onNextStep()">提交数据</el-button>
+            </div>
         </div>
+
         <el-dialog width="95%" v-model="dialogVisible" title="提交数据" :before-close="onCance" :close-on-click-modal="false">
+            <div class="subdialog">
+                <el-text>就餐班级: {{ displayCloas.name }}</el-text>
+            </div>
             <div class="subdialog">
                 <el-text>就餐日期: {{ data.meal_date }}</el-text>
             </div>
@@ -41,9 +56,10 @@
             </div>
             <div class="subdialog">
                 <el-text>应就餐人数: {{ data.expected_diners }} 人</el-text>
+                <el-text type="danger">（{{ fromData.no_meal_num }}人未就餐）</el-text>
             </div>
             <div class="subdialog">
-                <el-text>实际就餐人数: {{ data.actual_diners }} 人 ({{ fromData.no_meal_num }}人未就餐)</el-text>
+                <el-text>实际就餐人数: {{ data.actual_diners }} 人</el-text>
             </div>
             <div class="subdialog">
                 <el-text>未就餐学生: {{ data.absent_diners }}</el-text>
@@ -53,11 +69,20 @@
                 <el-button style="width: 65%" type="primary" @click="onSubmit()">确认提交</el-button>
             </div>
         </el-dialog>
+        <div v-if="result.result" style="margin-top: 40%">
+            <el-result icon="success" title="提交成功" sub-title="">
+                <template #extra>
+                    <el-button type="primary" @click="onContinue()">还要提交</el-button>
+                    <el-button type="primary" @click="onBack()">返回首页</el-button>
+                </template>
+            </el-result>
+        </div>
     </div>
 </template>
 
 <script>
 import MyHeader from "@/views/component/header.vue";
+import { GetOwnClass, RecordMealsData } from "@/api/index.js";
 export default {
     name: "MealsIndex",
     components: { MyHeader },
@@ -69,6 +94,7 @@ export default {
                 meal_period: "",
                 meal_date: "",
                 no_meal_num: "",
+                class_id: "",
             },
             data: {
                 meal_date: "",
@@ -92,14 +118,60 @@ export default {
                 ],
                 absent_diners: [{ message: "请输入未就餐学生姓名" }],
             },
+            ownClass: [],
+            targetClass: {},
+            result: {
+                fromt: true,
+                result: false,
+            },
+            // ads: false,
+            checkmsg: "",
         };
     },
+    // displayCloas
+    computed: {
+        displayCloas() {
+            return this.ownClass.find((item) => item.id === this.targetClass.id);
+        },
+    },
     methods: {
+        loadGetOwnClass: function () {
+            GetOwnClass().then((res) => {
+                this.ownClass = res.payload.class;
+                this.fromData.class_id = res.payload.class[0]["id"];
+            });
+        },
+        loadRecordMealsData: function (class_id, data) {
+            let paths = { class_id: class_id };
+            RecordMealsData(paths, data)
+                .then((res) => {
+                    this.dialogVisible = false;
+                    this.result.fromt = false;
+                    this.result.result = true;
+                })
+                .catch((err) => {
+                    console.log("---");
+                    let msg = "请检查数据是否重复提交" + err.data.metadata.message;
+                    this.$notify({ duration: 2000, title: "提交失败", message: msg, type: "error" });
+                });
+        },
+        onContinue() {
+            this.$router.push({ name: "meals" });
+            window.location.reload(); // 刷新页面，初始化数据，可优化，暂不需要
+        },
         onBack() {
             this.$router.push({ name: "home" });
         },
         onCance() {
             this.dialogVisible = false;
+        },
+        isDateInFuture(dateString) {
+            // 将字符串日期转换为Date对象
+            const futureDate = new Date(dateString);
+            // 获取当前日期
+            const today = new Date();
+            // 比较两个日期
+            return futureDate > today;
         },
         onNextStep() {
             this.$refs["meal-form"].validate((valid) => {
@@ -107,12 +179,17 @@ export default {
                 if (!valid) {
                     return;
                 }
+                this.checkmsg = "";
                 this.data = {
                     meal_date: this.fromData.meal_date,
                     meal_period: this.fromData.meal_period,
                     expected_diners: this.fromData.expected_diners,
                     actual_diners: this.fromData.expected_diners - this.fromData.no_meal_num,
-                    absent_diners: this.fromData.absent_diners,
+                    // absent_diners: this.fromData.absent_diners,
+                };
+                this.targetClass = {
+                    id: this.fromData.class_id,
+                    name: "班级",
                 };
                 switch (this.data.meal_period) {
                     // 'breakfast','lunch','dinner'
@@ -126,12 +203,35 @@ export default {
                         this.display_meal_period = "晚餐";
                         break;
                 }
+                // 检查日期是否超前
+                if (this.isDateInFuture(this.fromData.meal_date)) {
+                    this.checkmsg = "您不能提交明天的数据";
+                    return;
+                }
+                // 检查就餐人数和未就餐人数是否正常
+                if (this.fromData.expected_diners < this.fromData.no_meal_num) {
+                    this.checkmsg = "未就餐人数超了过总人数";
+                    return;
+                }
+                // 处理姓名并检测数目是否匹配
+                let namse = this.fromData.absent_diners;
+                const namseArr = namse === "" ? [] : namse.split(/\s+/);
+                if (namseArr.length != this.fromData.no_meal_num) {
+                    console.log(namseArr.length);
+                    console.log(namseArr);
+                    this.checkmsg = "未就餐学生姓名与未就餐人数不匹配";
+                    return;
+                }
+                this.data.absent_diners = namseArr.join(","); // 提交的数据，使用逗号隔开
+
+                // 显示弹框
                 this.dialogVisible = true;
             });
         },
         onSubmit() {
             // 未就餐学生姓名使用空格分开，程序按空格处理成数组
             // 并与未就餐人数比较，数目匹配才可以提交
+            this.loadRecordMealsData(this.targetClass.id, this.data);
         },
         initDate() {
             let currentDate = new Date();
@@ -143,6 +243,7 @@ export default {
     },
     created() {
         this.initDate();
+        this.loadGetOwnClass();
     },
 };
 </script>

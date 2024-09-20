@@ -9,9 +9,16 @@
 </template>
 
 <script>
+import { Resume } from "@/api/index.js";
 export default {
     name: "App",
+    methods: {
+        loadResume: async function () {
+            await Resume();
+        },
+    },
     created() {
+        this.loadResume();
         // document.title = "学生营养餐就餐记录系统";
     },
 };
