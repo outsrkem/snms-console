@@ -214,7 +214,7 @@ export default {
                     return;
                 }
                 // 处理姓名并检测数目是否匹配
-                let namse = this.fromData.absent_diners;
+                let namse = this.fromData.absent_diners.trim();
                 const nameArr = namse === "" ? [] : namse.split(/\s+/);
                 if (nameArr.length != this.fromData.no_meal_num) {
                     console.log(nameArr.length);
