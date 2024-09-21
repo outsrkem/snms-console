@@ -26,3 +26,7 @@ export const RecordMealsData = (paths, data) => ajax(`/v1/meals/record/${paths.c
 
 // 查询就餐数据详情 GET /v1/meals/detail?page=3&page_size=10
 export const GetMealsDetail = (params) => ajax('/v1/meals/detail', 'GET', params, null)
+
+
+// 查询就餐报表 GET /v1/meals/report?cid=14e21bacf0b54d4ab58c215dde9eeccb&y=2024&m=09
+export const GetMealsReport = (params) => ajax('/v1/meals/report', 'GET', params, null)

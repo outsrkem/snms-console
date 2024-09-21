@@ -29,10 +29,10 @@
                     <el-input v-model.number="fromData.expected_diners" />
                 </el-form-item>
                 <el-form-item label="未就餐人数" prop="no_meal_num">
-                    <el-input v-model.number="fromData.no_meal_num" />
+                    <el-input v-model.number="fromData.no_meal_num" @focus="onCleanDefault()" />
                 </el-form-item>
-                <el-form-item label="未就餐学生（用空格分隔）" prop="absent_diners">
-                    <el-input v-model="fromData.absent_diners" />
+                <el-form-item :label="'未就餐学生：' + noMealNameCunt + '（用空格分隔）'" prop="absent_diners">
+                    <el-input v-model="fromData.absent_diners" @input="onCountNumber()" />
                     <div v-if="checkmsg != ''">
                         <el-text type="danger">{{ checkmsg }}</el-text>
                     </div>
@@ -72,8 +72,8 @@
         <div v-if="result.result" style="margin-top: 40%">
             <el-result icon="success" title="提交成功" sub-title="">
                 <template #extra>
-                    <el-button type="primary" @click="onContinue()">还要提交</el-button>
-                    <el-button type="primary" @click="onBack()">返回首页</el-button>
+                    <!-- <el-button type="primary" @click="onContinue()">还要提交</el-button> -->
+                    <el-button size="large" type="primary" @click="onBack()">返回首页</el-button>
                 </template>
             </el-result>
         </div>
@@ -124,8 +124,8 @@ export default {
                 fromt: true,
                 result: false,
             },
-            // ads: false,
             checkmsg: "",
+            noMealNameCunt: "",
         };
     },
     // displayCloas
@@ -149,10 +149,8 @@ export default {
                     this.result.fromt = false;
                     this.result.result = true;
                 })
-                .catch((err) => {
-                    console.log("---");
-                    let msg = "请检查数据是否重复提交" + err.data.metadata.message;
-                    this.$notify({ duration: 2000, title: "提交失败", message: msg, type: "error" });
+                .catch(() => {
+                    this.$notify({ duration: 2000, title: "不能重复提交", type: "error" });
                 });
         },
         onContinue() {
@@ -172,6 +170,11 @@ export default {
             const today = new Date();
             // 比较两个日期
             return futureDate > today;
+        },
+        onCountNumber() {
+            let namse = this.fromData.absent_diners.trim().replace(/,/g, " ");
+            const nameArr = namse === "" ? [] : namse.split(/\s+/);
+            this.noMealNameCunt = nameArr.length + "人";
         },
         onNextStep() {
             this.$refs["meal-form"].validate((valid) => {
@@ -214,7 +217,7 @@ export default {
                     return;
                 }
                 // 处理姓名并检测数目是否匹配
-                let namse = this.fromData.absent_diners.trim();
+                let namse = this.fromData.absent_diners.trim().replace(/,/g, " ");
                 const nameArr = namse === "" ? [] : namse.split(/\s+/);
                 if (nameArr.length != this.fromData.no_meal_num) {
                     console.log(nameArr.length);
