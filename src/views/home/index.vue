@@ -13,10 +13,20 @@
         <div class="line-row">
             <el-button style="width: 100%" size="large" type="primary" plain @click="onSkipTo('record')">查看记录明细</el-button>
         </div>
+        <div class="line-row">
+            <el-button style="width: 100%" size="large" type="primary" plain @click="onSkipTo('stuclass')">班级管理</el-button>
+        </div>
+        <div class="line-row">
+            <el-button style="width: 100%" size="large" type="primary" plain @click="onSkipTo('classAddTeacher')">班级教师管理</el-button>
+        </div>
+        <div class="line-row">
+            <el-button style="width: 100%" size="large" type="primary" plain @click="onToConsole()">返回控制台</el-button>
+        </div>
     </div>
 </template>
 
 <script>
+import { toConsole } from "@/utils/common.js";
 export default {
     name: "HomeIndex",
     components: {},
@@ -27,6 +37,9 @@ export default {
     methods: {
         onSkipTo(val) {
             this.$router.push({ name: val });
+        },
+        onToConsole() {
+            toConsole();
         },
     },
     created() {},

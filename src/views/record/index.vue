@@ -1,6 +1,9 @@
 <template>
     <MyHeader title="查看记录明细"></MyHeader>
     <div>
+        <div class="reminder">
+            <p>数据每餐一条，页面最大提供60条数据。</p>
+        </div>
         <el-select v-model="class_id" size="large" @change="onChanClass">
             <el-option v-for="(item, index) in ownClass" :key="index" :label="item.name" :value="item.id" />
         </el-select>
@@ -53,7 +56,8 @@ export default {
 
     methods: {
         loadGetOwnClass: function () {
-            GetOwnClass()
+            const params = { page: 1, page_size: 200 };
+            GetOwnClass(params)
                 .then((res) => {
                     this.ownClass = res.payload.class;
                     this.class_id = res.payload.class[0]["id"];
@@ -62,7 +66,8 @@ export default {
         },
         loadGetMealsDetail: function () {
             const paths = { class_id: this.class_id };
-            GetMealsDetail(paths)
+            const params = { page: 1, page_size: 60 };
+            GetMealsDetail(paths, params)
                 .then((res) => {
                     this.detailInfo = res.payload.detail;
                 })

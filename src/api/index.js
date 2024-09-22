@@ -19,7 +19,11 @@ import ajax from '../api/ajax'
 export const Resume = () => ajax('/v1/resume', 'POST')
 
 // 查询我的班级 /v1/class/own GET
-export const GetOwnClass = () => ajax('/v1/class/own', 'GET')
+export const GetOwnClass = (paths) => ajax('/v1/class/own', 'GET', paths)
+
+// 创建班级 POST /v1/class/setting
+export const CreateClass = (data) => ajax('/v1/class/setting', 'POST', null, data)
+
 
 // 登记就餐数据 POST /v1/meals/record/:class_id
 export const RecordMealsData = (paths, data) => ajax(`/v1/meals/record/${paths.class_id}`, 'POST', null, data)
@@ -30,3 +34,12 @@ export const GetMealsDetail = (paths, params) => ajax(`/v1//${paths.class_id}/me
 
 // 查询就餐报表 GET /v1/meals/report?cid=14e21bacf0b54d4ab58c215dde9eeccb&y=2024&m=09
 export const GetMealsReport = (params) => ajax('/v1/meals/report', 'GET', params, null)
+
+
+// 查询所有教师 GET /v1/teacher/all?page=1&page_size=10
+export const GetAllTeacher = (params) => ajax('/v1/teacher/all', 'GET', params, null)
+// 查询所有班级 GET /v1/class/all?page=1&page_size=10
+export const GetAllClass = (params) => ajax('/v1/class/all', 'GET', params, null)
+
+// 班级添加教师 POST /v1/class/add/student
+export const ClassAddTeacher = (data) => ajax('/v1/class/add/student', 'POST', null, data)

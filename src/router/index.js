@@ -3,13 +3,16 @@ const Home = () => import('../views/home/index.vue')
 const Meals = () => import('../views/meals/index.vue')
 const Report = () => import('../views/report/index.vue')
 const Record = () => import('../views/record/index.vue')
-
+const Stuclass = () => import('../views/stuclass/index.vue')
+const ClassAddTea = () => import('../views/classAddTea/index.vue')
 
 const routes = [
     { path: '/', name: 'home', component: Home, meta: { title: '首页 - 营养餐就餐记录系统' } },
     { path: '/meals', name: 'meals', component: Meals, meta: { title: '登记就餐数据' } },
     { path: '/report', name: 'report', component: Report, meta: { title: '查看报表' } },
     { path: '/record', name: 'record', component: Record, meta: { title: '查看记录明细' } },
+    { path: '/stuclass', name: 'stuclass', component: Stuclass, meta: { title: '班级管理' } },
+    { path: '/classAddTeacher', name: 'classAddTeacher', component: ClassAddTea, meta: { title: '班级添加教师' } },
 ]
 
 const router = createRouter({

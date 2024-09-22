@@ -4,16 +4,13 @@
             <div class="container-2">
                 <router-view />
             </div>
-            <div v-if="data != ''">
-                <h3>Internal Server Error</h3>
-                {{ data }}
-            </div>
         </div>
     </div>
 </template>
 
 <script>
 import { Resume } from "@/api/index.js";
+import { ElMessage } from "element-plus";
 export default {
     name: "App",
     data() {
@@ -24,7 +21,7 @@ export default {
             Resume()
                 .then(() => {})
                 .catch((err) => {
-                    this.data = err.data;
+                    ElMessage.error(err.data);
                 });
         },
     },
