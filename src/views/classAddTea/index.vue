@@ -53,7 +53,19 @@ export default {
                 .then((res) => {
                     this.teacherlist = res.payload.items;
                 })
-                .catch(() => {});
+                .catch((err) => {
+                    if (err.status === 403) {
+                        this.$notify({ duration: 5000, title: "您没有权限", type: "error" });
+                    } else {
+                        ElMessage({
+                            showClose: true,
+                            message: err.data,
+                            type: "error",
+                            duration: 0,
+                            grouping: true,
+                        });
+                    }
+                });
         },
         loadGetAllClass: function () {
             const params = { page: 1, page_size: 200 };
@@ -61,7 +73,19 @@ export default {
                 .then((res) => {
                     this.classList = res.payload.class;
                 })
-                .catch(() => {});
+                .catch((err) => {
+                    if (err.status === 403) {
+                        this.$notify({ duration: 5000, title: "您没有权限", type: "error" });
+                    } else {
+                        ElMessage({
+                            showClose: true,
+                            message: err.data,
+                            type: "error",
+                            duration: 0,
+                            grouping: true,
+                        });
+                    }
+                });
         },
         loadClassAddTeacher: function () {
             const data = {
@@ -78,14 +102,18 @@ export default {
                         grouping: true,
                     });
                 })
-                .catch(() => {
-                    ElMessage({
-                        showClose: true,
-                        message: "添加失败",
-                        type: "error",
-                        duration: 0,
-                        grouping: true,
-                    });
+                .catch((err) => {
+                    if (err.status === 403) {
+                        this.$notify({ duration: 5000, title: "您没有权限", type: "error" });
+                    } else {
+                        ElMessage({
+                            showClose: true,
+                            message: "添加失败",
+                            type: "error",
+                            duration: 0,
+                            grouping: true,
+                        });
+                    }
                 });
         },
         onClassAddTea() {

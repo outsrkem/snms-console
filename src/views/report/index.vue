@@ -16,6 +16,7 @@
             <el-button type="" @click="print(displayClass)">打印</el-button>
         </div>
     </div>
+    <div v-if="msg403 != ''">{{ msg403 }}</div>
     <div v-if="tableData.length === 0"><el-empty :image-size="200" /></div>
     <div id="print-body" v-else>
         <table>
@@ -65,23 +66,13 @@ export default {
     props: {},
     data() {
         return {
-            tableData: [
-                {
-                    class_id: "",
-                    class_name: "",
-                    meal_date: "",
-                    meals: {
-                        breakfast: { absent_diners: "", actual_diners: "", expected_diners: "" },
-                        dinner: { absent_diners: "", actual_diners: "", expected_diners: "" },
-                        lunch: { absent_diners: "", actual_diners: "", expected_diners: "" },
-                    },
-                },
-            ],
+            tableData: [],
             ownClass: "",
             class_id: "",
             yearMonth: "",
             displayTable: false,
             countdownTimer: null, // 全局变量来存储定时器ID
+            msg403: "",
         };
     },
     computed: {
@@ -113,9 +104,16 @@ export default {
             this.tableData = [];
             GetMealsReport(params)
                 .then((res) => {
+                    console.log(res);
                     this.tableData = res.payload.report;
                 })
-                .catch(() => {});
+                .catch((err) => {
+                    if (err.status === 403) {
+                        this.msg403 = "您没有权限。";
+                    } else {
+                        this.$notify({ duration: 5000, title: err.data, type: "error" });
+                    }
+                });
         },
         onChanClass() {
             this.loadGetMealsReport();

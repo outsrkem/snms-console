@@ -57,14 +57,18 @@ export default {
                         grouping: true,
                     });
                 })
-                .catch(() => {
-                    ElMessage({
-                        showClose: true,
-                        message: "创建失败",
-                        type: "error",
-                        duration: 0,
-                        grouping: true,
-                    });
+                .catch((err) => {
+                    if (err.status === 403) {
+                        this.$notify({ duration: 5000, title: "您没有权限", type: "error" });
+                    } else {
+                        ElMessage({
+                            showClose: true,
+                            message: `创建失败${err.data}`,
+                            type: "error",
+                            duration: 0,
+                            grouping: true,
+                        });
+                    }
                 });
         },
         initClassData() {
