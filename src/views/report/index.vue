@@ -142,7 +142,7 @@ export default {
             var html = document.getElementById("print-body").innerHTML;
             const printWindow = window.open("", "_blank");
             printWindow.document.write(
-                `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8" /><title>${title}</title><style>table, th, td {border: 1px solid black;border-collapse: collapse;text-align: center;}th, td {padding: 3px;/* 表格边框到文字的间距 */}.meal-col {min-width: 100px;}@media print {body {margin: 1cm;position: absolute;left: 0;top: 0;}body::before {content: "${headline}";display: block;text-align: center;font-size: 15px;/* 打印时表格标题字体大小 */font-weight: bold;margin-bottom: 20px;}th, td {font-size: 8pt;/* 打印时表格单元格的字体大小 */}thead {display: table-header-group;}tr {page-break-inside: avoid;page-break-after: auto;}td {page-break-inside: avoid;}@page {margin: 1cm 1cm 1cm 1cm;/* 页边距 */}}</style></head><body><div class="print-content"></div></body></html>`
+                `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8" /><title>${title}</title><style>table {width: 100%;border-collapse: collapse;}th, td {border: 1px solid black;text-align: center;}th, td {padding: 3px;/* 表格边框到文字的间距 */}.meal-col {min-width: 100px;}@media print {body::before {content: "${headline}";display: block;text-align: center;font-size: 15px;/* 打印时表格标题字体大小 */font-weight: bold;margin-bottom: 20px;}th, td {font-size: 8pt;/* 打印时表格单元格的字体大小 */}thead {display: table-header-group;}table {width: 100% !important;border-collapse: collapse;}tr {page-break-inside: avoid;page-break-after: auto;}td {page-break-inside: avoid;}@page {margin: 1cm 1.5cm 1cm 1.5cm;/* 页边距上、右、下、左 */}}</style></head><body><div class="print-content"></div></body></html>`
             );
             printWindow.document.close();
             const contentContainer = printWindow.document.querySelector(".print-content");
@@ -170,11 +170,13 @@ export default {
 </script>
 
 <style scoped lang="less">
-table,
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
 th,
 td {
     border: 1px solid black;
-    border-collapse: collapse;
     text-align: center;
 }
 th,
@@ -184,7 +186,6 @@ td {
 th {
     background-color: #f2f2f2;
 }
-
 .meal-col {
     min-width: 100px;
 }
