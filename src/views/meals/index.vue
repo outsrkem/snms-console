@@ -2,7 +2,7 @@
     <div>
         <MyHeader title="登记就餐数据"></MyHeader>
         <div v-if="result.fromt">
-            <el-form label-position="top" label-width="auto" :model="fromData" :rules="rules" ref="meal-form">
+            <el-form label-position="top" label-width="auto" :model="fromData" :rules="rules" ref="meal-form" size="large">
                 <el-form-item label="选择班级">
                     <el-select v-model="fromData.class_id">
                         <el-option v-for="item in ownClass" :key="item.value" :label="item.name" :value="item.id" />

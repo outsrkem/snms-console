@@ -6,15 +6,12 @@
         </div>
         <div style="width: 200px; margin-right: 20px">
             <el-select v-model="class_id" @change="onChanClass">
-                <el-option v-for="item in ownClass" :key="item.value" :label="item.name" :value="item.id" />
+                <el-option v-for="(item, index) in ownClass" :key="index" :label="item.name" :value="item.id" />
             </el-select>
         </div>
         <div style="margin-right: 20px">
             <el-date-picker v-model="yearMonth" type="month" value-format="YYYY-MM" :clearable="false" @change="onChanYearMonth" />
         </div>
-        <!-- <div style="margin-right: 20px">
-            <el-button type="" @click="onRefresh()">刷新</el-button>
-        </div> -->
         <div>
             <el-button type="" @click="print(displayClass)">打印</el-button>
         </div>
@@ -90,7 +87,11 @@ export default {
     computed: {
         displayClass() {
             // 再班级中找到当前选中的id，并获取其班级名称
-            return this.ownClass.find((item) => item.id === this.class_id).name;
+            if (this.class_id != "") {
+                return this.ownClass.find((item) => item.id === this.class_id).name;
+            } else {
+                return "";
+            }
         },
     },
     methods: {
@@ -110,9 +111,11 @@ export default {
                 m: parts[1],
             };
             this.tableData = [];
-            GetMealsReport(params).then((res) => {
-                this.tableData = res.payload.report;
-            });
+            GetMealsReport(params)
+                .then((res) => {
+                    this.tableData = res.payload.report;
+                })
+                .catch(() => {});
         },
         onChanClass() {
             this.loadGetMealsReport();
