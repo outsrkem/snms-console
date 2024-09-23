@@ -13,7 +13,7 @@
                 </el-input>
             </el-form-item>
             <el-form-item label="输入班级（输入阿拉伯数字即可）">
-                <el-input v-model="NoClass" @input="initClassData()" placeholder="示例：3">
+                <el-input v-model.number="NoClass" @input="initClassData()" placeholder="示例：3">
                     <template #prepend>输入班级</template>
                 </el-input>
             </el-form-item>
@@ -63,7 +63,7 @@ export default {
                     } else {
                         ElMessage({
                             showClose: true,
-                            message: `创建失败${err.data}`,
+                            message: `创建失败${err.data.metadata.message}`,
                             type: "error",
                             duration: 0,
                             grouping: true,
@@ -91,6 +91,16 @@ export default {
                 ElMessage({
                     showClose: true,
                     message: "请输入班级",
+                    type: "error",
+                    duration: 0,
+                    grouping: true,
+                });
+                return;
+            }
+            if (!Number.isInteger(this.NoClass)) {
+                ElMessage({
+                    showClose: true,
+                    message: "班级不是整数",
                     type: "error",
                     duration: 0,
                     grouping: true,

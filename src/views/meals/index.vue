@@ -3,8 +3,8 @@
         <MyHeader title="登记就餐数据"></MyHeader>
         <div v-if="result.fromt">
             <el-form label-position="top" label-width="auto" :model="fromData" :rules="rules" ref="meal-form" size="large">
-                <el-form-item label="选择班级">
-                    <el-select v-model="fromData.class_id">
+                <el-form-item :label="selectLable">
+                    <el-select v-model="fromData.class_id" placeholder="权限不足或无数据">
                         <el-option v-for="item in ownClass" :key="item.value" :label="item.name" :value="item.id" />
                     </el-select>
                 </el-form-item>
@@ -29,9 +29,9 @@
                     <el-input v-model.number="fromData.expected_diners" />
                 </el-form-item>
                 <el-form-item label="未就餐人数" prop="no_meal_num">
-                    <el-input v-model.number="fromData.no_meal_num" @focus="onCleanDefault()" />
+                    <el-input v-model.number="fromData.no_meal_num" />
                 </el-form-item>
-                <el-form-item :label="'未就餐学生：' + noMealNameCunt + '（用空格分隔）'" prop="absent_diners">
+                <el-form-item :label="'未就餐学生：' + noMealNameCunt + '（1人以上用空格分隔）'" prop="absent_diners">
                     <el-input v-model="fromData.absent_diners" @input="onCountNumber()" />
                     <div v-if="checkmsg != ''">
                         <el-text type="danger">{{ checkmsg }}</el-text>
@@ -69,7 +69,7 @@
                 <el-button style="width: 65%" type="primary" @click="onSubmit()">确认提交</el-button>
             </div>
         </el-dialog>
-        <div v-if="result.result" style="margin-top: 40%">
+        <div v-if="result.result" style="margin-top: 30%">
             <el-result icon="success" title="提交成功" sub-title="">
                 <template #extra>
                     <!-- <el-button type="primary" @click="onContinue()">还要提交</el-button> -->
@@ -125,6 +125,7 @@ export default {
                 result: false,
             },
             checkmsg: "",
+            selectLable: "选择班级",
             noMealNameCunt: "",
         };
     },
@@ -136,10 +137,16 @@ export default {
     },
     methods: {
         loadGetOwnClass: function () {
-            GetOwnClass().then((res) => {
-                this.ownClass = res.payload.class;
-                this.fromData.class_id = res.payload.class[0]["id"];
-            });
+            GetOwnClass()
+                .then((res) => {
+                    this.ownClass = res.payload.class;
+                    this.fromData.class_id = res.payload.class[0]["id"];
+                })
+                .catch((err) => {
+                    if (err.status === 403) {
+                        this.selectLable = "选择班级（您没有权限）";
+                    }
+                });
         },
         loadRecordMealsData: function (class_id, data) {
             let paths = { class_id: class_id };
@@ -149,7 +156,10 @@ export default {
                     this.result.fromt = false;
                     this.result.result = true;
                 })
-                .catch(() => {
+                .catch((err) => {
+                    if (err.status === 403) {
+                        this.$notify({ duration: 2000, title: "您没有权限", type: "warning" });
+                    }
                     this.$notify({ duration: 2000, title: "不能重复提交", type: "error" });
                 });
         },
@@ -165,14 +175,15 @@ export default {
         },
         isDateInFuture(dateString) {
             // 将字符串日期转换为Date对象
-            const futureDate = new Date(dateString);
+            const futureDate = new Date(`${dateString} GMT+0800`);
             // 获取当前日期
             const today = new Date();
-            // 比较两个日期
+            // 比较两个日期.如果dateString大于当前时间，返回 true
             return futureDate > today;
         },
         onCountNumber() {
-            let namse = this.fromData.absent_diners.trim().replace(/,/g, " ");
+            //先将字符串中的逗号替换成空格，在去除两端的空格，英文首位的逗号替换后就多个空格，导致计算多一个人
+            let namse = this.fromData.absent_diners.replace(/[,]/g, " ").trim();
             const nameArr = namse === "" ? [] : namse.split(/\s+/);
             this.noMealNameCunt = nameArr.length + "人";
         },
