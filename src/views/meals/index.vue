@@ -137,7 +137,8 @@ export default {
     },
     methods: {
         loadGetOwnClass: function () {
-            GetOwnClass()
+            const params = { page: 1, page_size: 200 };
+            GetOwnClass(params)
                 .then((res) => {
                     this.ownClass = res.payload.class;
                     this.fromData.class_id = res.payload.class[0]["id"];

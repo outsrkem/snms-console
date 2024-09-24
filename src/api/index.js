@@ -19,7 +19,7 @@ import ajax from '../api/ajax'
 export const Resume = () => ajax('/v1/resume', 'POST')
 
 // 查询我的班级 /v1/class/own GET
-export const GetOwnClass = (paths) => ajax('/v1/class/own', 'GET', paths)
+export const GetOwnClass = (params) => ajax('/v1/class/own', 'GET', params)
 
 // 创建班级 POST /v1/class/setting
 export const CreateClass = (data) => ajax('/v1/class/setting', 'POST', null, data)
