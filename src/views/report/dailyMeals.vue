@@ -1,82 +1,79 @@
 <template>
-    <div style="margin-bottom: 10px; display: flex; justify-content: left; align-items: center">
-        <div style="margin-right: 20px">
-            <h4 style="margin-top: 0px; margin-bottom: 0px">阳坝镇中心小学{{ displayData }}就餐信息</h4>
-        </div>
-
-        <!-- <div style="width: 200px; margin-right: 20px">
-            <el-select v-model="class_id" @change="onChanClass">
-                <el-option v-for="(item, index) in ownClass" :key="index" :label="item.name" :value="item.id" />
-            </el-select>
-        </div> -->
-        <div style="margin-right: 20px">
-            <el-date-picker size="small" v-model="currentDate" type="date" value-format="YYYY-MM-DD" :clearable="false" @change="onChanData" />
-        </div>
-        <div>
-            <el-button size="small" type="primary" :loading="bl.pd" @click="onPrevDay">前一天</el-button>
-            <el-button size="small" type="primary" :loading="bl.td" @click="onToday">今天</el-button>
-            <el-button size="small" type="primary" :loading="bl.nd" @click="onNextDay">后一天</el-button>
-            <el-button size="small" type="primary" :loading="bl.rf" @click="onRefresh">刷新</el-button>
-            <el-button size="small" type="primary" :loading="bl.pr" @click="print(displayData)">打印</el-button>
-        </div>
-    </div>
     <div v-if="permissionDenied === true">
         <el-result icon="warning" title="您没有权限" />
     </div>
-    <div v-else v-loading="bl.pl">
-        <div v-if="tableData.length === 0"><el-empty :image-size="200" /></div>
-        <div id="print-body" v-else>
-            <table>
-                <tbody>
-                    <tr>
-                        <th>日期</th>
-                        <th>{{ displayData }}</th>
-                        <!-- <th>班级</th> -->
-                        <th colspan="3">早餐</th>
-                        <th colspan="3">午餐</th>
-                        <th colspan="3">晚餐</th>
-                    </tr>
-                    <tr>
-                        <th>No.</th>
-                        <th class="meal-col">班级</th>
-                        <th>应有人数</th>
-                        <th>实际人数</th>
-                        <th>未就餐学生</th>
-                        <th>应有人数</th>
-                        <th>实际人数</th>
-                        <th>未就餐学生</th>
-                        <th>应有人数</th>
-                        <th>实际人数</th>
-                        <th>未就餐学生</th>
-                    </tr>
-                    <tr v-for="(item, index) in tableData" :key="index">
-                        <td>{{ index + 1 }}</td>
-                        <td>{{ item.class_name }}</td>
-                        <td>{{ item.meals.breakfast.expected_diners }}</td>
-                        <td>{{ item.meals.breakfast.actual_diners }}</td>
-                        <td>{{ item.meals.breakfast.absent_diners }}</td>
-                        <td>{{ item.meals.lunch.expected_diners }}</td>
-                        <td>{{ item.meals.lunch.actual_diners }}</td>
-                        <td>{{ item.meals.lunch.absent_diners }}</td>
-                        <td>{{ item.meals.dinner.expected_diners }}</td>
-                        <td>{{ item.meals.dinner.actual_diners }}</td>
-                        <td>{{ item.meals.dinner.absent_diners }}</td>
-                    </tr>
-                    <tr>
-                        <td>--</td>
-                        <td>合计</td>
-                        <td>{{ calculateTotalExpectedBreakfastDiners }}</td>
-                        <td>{{ calculateBreakfastActualDiners }}</td>
-                        <td>--</td>
-                        <td>{{ calculateTotalExpecteLunchDiners }}</td>
-                        <td>{{ calculateLunchtActualDiners }}</td>
-                        <td>--</td>
-                        <td>{{ calculateTotalExpecteDinnerDiners }}</td>
-                        <td>{{ calculateDinnertActualDiners }}</td>
-                        <td>--</td>
-                    </tr>
-                </tbody>
-            </table>
+    <div v-else>
+        <div style="margin-bottom: 10px; display: flex; justify-content: left; align-items: center">
+            <div style="margin-right: 20px">
+                <h4 style="margin-top: 0px; margin-bottom: 0px">阳坝镇中心小学 ● {{ displayData }}就餐信息</h4>
+            </div>
+            <div style="margin-right: 20px">
+                <el-date-picker size="small" v-model="currentDate" type="date" value-format="YYYY-MM-DD" :clearable="false" @change="onChanData" />
+            </div>
+            <div>
+                <el-button size="small" type="primary" :loading="bl.pd" @click="onPrevDay">前一天</el-button>
+                <el-button size="small" type="primary" :loading="bl.td" @click="onToday">今天</el-button>
+                <el-button size="small" type="primary" :loading="bl.nd" @click="onNextDay">后一天</el-button>
+                <el-button size="small" type="primary" :loading="bl.rf" @click="onRefresh">刷新</el-button>
+                <el-button size="small" type="primary" :loading="bl.pr" @click="print(displayData)">打印</el-button>
+            </div>
+        </div>
+
+        <div v-loading="bl.pl">
+            <div v-if="tableData.length === 0"><el-empty :image-size="200" /></div>
+            <div id="print-body" v-else>
+                <table>
+                    <tbody>
+                        <tr>
+                            <th>日期</th>
+                            <th>{{ displayData }}</th>
+                            <!-- <th>班级</th> -->
+                            <th colspan="3">早餐</th>
+                            <th colspan="3">午餐</th>
+                            <th colspan="3">晚餐</th>
+                        </tr>
+                        <tr>
+                            <th>No.</th>
+                            <th class="meal-col">班级</th>
+                            <th>应有人数</th>
+                            <th>实际人数</th>
+                            <th>未就餐学生</th>
+                            <th>应有人数</th>
+                            <th>实际人数</th>
+                            <th>未就餐学生</th>
+                            <th>应有人数</th>
+                            <th>实际人数</th>
+                            <th>未就餐学生</th>
+                        </tr>
+                        <tr v-for="(item, index) in tableData" :key="index">
+                            <td>{{ index + 1 }}</td>
+                            <td>{{ item.class_name }}</td>
+                            <td>{{ item.meals.breakfast.expected_diners }}</td>
+                            <td>{{ item.meals.breakfast.actual_diners }}</td>
+                            <td>{{ item.meals.breakfast.absent_diners }}</td>
+                            <td>{{ item.meals.lunch.expected_diners }}</td>
+                            <td>{{ item.meals.lunch.actual_diners }}</td>
+                            <td>{{ item.meals.lunch.absent_diners }}</td>
+                            <td>{{ item.meals.dinner.expected_diners }}</td>
+                            <td>{{ item.meals.dinner.actual_diners }}</td>
+                            <td>{{ item.meals.dinner.absent_diners }}</td>
+                        </tr>
+                        <tr>
+                            <td>--</td>
+                            <td>合计</td>
+                            <td>{{ calculateTotalExpectedBreakfastDiners }}</td>
+                            <td>{{ calculateBreakfastActualDiners }}</td>
+                            <td>--</td>
+                            <td>{{ calculateTotalExpecteLunchDiners }}</td>
+                            <td>{{ calculateLunchtActualDiners }}</td>
+                            <td>--</td>
+                            <td>{{ calculateTotalExpecteDinnerDiners }}</td>
+                            <td>{{ calculateDinnertActualDiners }}</td>
+                            <td>--</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </template>
