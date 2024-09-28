@@ -36,6 +36,9 @@ export const GetMealsDetail = (paths, params) => ajax(`/v1//${paths.class_id}/me
 export const GetMealsReport = (params) => ajax('/v1/meals/report', 'GET', params, null)
 // 查询每天所有班级的就餐统计 GET /v1/statistics/daily/meals?page=1&page_size=2&y=2024&m=9&d=25
 export const GetDailyMeals = (params) => ajax('/v1/statistics/daily/meals', 'GET', params, null)
+// 查询每月所有班级的就餐统计 GET /v1/statistics/monthly/meals/all?page=1&page_size=300&y=2024&m=1
+export const GetMonthlyMealsAll = (params) => ajax('/v1/statistics/monthly/meals/all', 'GET', params, null)
+
 
 // 查询所有教师 GET /v1/teacher/all?page=1&page_size=10
 export const GetAllTeacher = (params) => ajax('/v1/teacher/all', 'GET', params, null)

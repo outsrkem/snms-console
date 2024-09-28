@@ -160,8 +160,9 @@ export default {
                 .catch((err) => {
                     if (err.status === 403) {
                         this.$notify({ duration: 2000, title: "您没有权限", type: "warning" });
+                    } else {
+                        this.$notify({ duration: 2000, title: "不能重复提交", type: "error" });
                     }
-                    this.$notify({ duration: 2000, title: "不能重复提交", type: "error" });
                 });
         },
         onContinue() {

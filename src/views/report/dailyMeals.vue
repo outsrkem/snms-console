@@ -86,7 +86,7 @@ export default {
         return {
             tableData: [],
             permissionDenied: false,
-            currentDate: new Date().toISOString().slice(0, 10),
+            currentDate: "",
             bl: {
                 pd: false, //前一天
                 td: false, //今天
@@ -95,6 +95,7 @@ export default {
                 pr: false, //打印
                 pl: false, // 页面加载状态
             },
+            timeoutId: null,
         };
     },
     computed: {
@@ -175,9 +176,17 @@ export default {
                     }
                 });
         },
+        // 辅助方法，用于格式化日期为YYYY-MM-DD
+        formatDate() {
+            let today = new Date();
+            let year = today.getFullYear();
+            let month = String(today.getMonth() + 1).padStart(2, "0"); // 月份从0开始，所以要+1
+            let day = String(today.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+        },
         onChanData(val) {
             // 日期切换
-            this.loadGetDailyMeals(val);
+            this.onRefresh(val);
         },
         onPrevDay() {
             // 前一天
@@ -190,7 +199,7 @@ export default {
         onToday() {
             // 今天
             this.switchButtonLoading("td");
-            this.currentDate = new Date().toISOString().slice(0, 10);
+            this.currentDate = this.formatDate();
             this.onRefresh();
         },
         onNextDay() {
@@ -219,13 +228,16 @@ export default {
         onRefresh() {
             // 刷新
             this.switchButtonLoading("rf");
-            this.loadGetDailyMeals();
+            clearTimeout(this.timeoutId);
+            this.timeoutId = setTimeout(() => {
+                this.loadGetDailyMeals();
+            }, this.$config.delayTime);
         },
         print(displayData) {
             // 打印功能， 打印表格数据
             this.switchButtonLoading("pr");
-            let title = `查看报表 - 阳坝镇中心小学 - 全年级就餐信息 - ${this.currentDate}`;
-            let headline = `阳坝镇中心小学 ● ${displayData}`;
+            let title = `查看报表 - ${this.$config.schoolName} - 全年级每日就餐信息 - ${this.currentDate}`;
+            let headline = `${this.$config.schoolName} ● ${displayData}全年级就餐统计`;
             var html = document.getElementById("print-body").innerHTML;
             const printWindow = window.open("", "_blank");
             printWindow.document.write(
@@ -239,8 +251,9 @@ export default {
         },
     },
     created() {
+        this.currentDate = this.formatDate();
         this.switchButtonLoading("rf");
-        this.loadGetDailyMeals();
+        this.onRefresh();
     },
 };
 </script>

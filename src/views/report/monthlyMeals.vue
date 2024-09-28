@@ -84,7 +84,7 @@
 </template>
 
 <script>
-import { GetOwnClass, GetMealsReport } from "@/api/index.js";
+import { GetAllClass, GetMealsReport } from "@/api/index.js";
 export default {
     name: "MonthlyMeals",
     data() {
@@ -105,6 +105,7 @@ export default {
                 pl: false, // 页面加载状态
             },
             currentDate: new Date(), // 默认当前日期
+            timeoutId: null,
         };
     },
     computed: {
@@ -166,9 +167,9 @@ export default {
         },
     },
     methods: {
-        loadGetOwnClass: function () {
+        loadGetAllClass: function () {
             const params = { page: 1, page_size: 200 };
-            GetOwnClass(params)
+            GetAllClass(params)
                 .then((res) => {
                     this.ownClass = res.payload.class;
                     this.class_id = res.payload.class[0]["id"];
@@ -204,10 +205,10 @@ export default {
                 });
         },
         onChanClass() {
-            this.loadGetMealsReport();
+            this.onRefresh();
         },
         onChanYearMonth() {
-            this.loadGetMealsReport();
+            this.onRefresh();
         },
         switchButtonLoading(val = false) {
             // 切换按钮的加载状态
@@ -251,15 +252,18 @@ export default {
         },
         onRefresh() {
             this.switchButtonLoading("rf");
-            this.loadGetMealsReport();
+            clearTimeout(this.timeoutId);
+            this.timeoutId = setTimeout(() => {
+                this.loadGetMealsReport();
+            }, this.$config.delayTime);
         },
         onBack() {
             this.$router.push({ name: "home" });
         },
         print(displayClass) {
             // 打印功能
-            let title = `查看报表 - 阳坝镇中心小学 - 班级月就餐信息 - ${this.yearMonth}`;
-            let headline = `阳坝镇中心小学 ● ${displayClass}`;
+            let title = `查看报表 - ${this.$config.schoolName} - 班级月就餐信息 - ${this.yearMonth}`;
+            let headline = `${this.$config.schoolName} ● ${displayClass}`;
             var html = document.getElementById("print-body").innerHTML;
             const printWindow = window.open("", "_blank");
             printWindow.document.write(
@@ -279,13 +283,13 @@ export default {
             this.countdownTimer = setTimeout(() => {
                 this.startCountdown(val - 1);
                 // 1秒钟10次
-            }, 100);
+            }, 300);
         },
     },
     created() {
         this.switchButtonLoading("rf");
         this.yearMonth = this.formatDate(new Date());
-        this.loadGetOwnClass();
+        this.loadGetAllClass();
         this.startCountdown(); // 使用定时器控制，函数执行时，确保上一个执行完成
     },
 };
