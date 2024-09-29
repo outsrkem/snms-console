@@ -29,11 +29,11 @@ export const CreateClass = (data) => ajax('/v1/class/setting', 'POST', null, dat
 export const RecordMealsData = (paths, data) => ajax(`/v1/meals/record/${paths.class_id}`, 'POST', null, data)
 
 // 查询就餐数据详情 GET /v1/meals/detail?page=3&page_size=10
-export const GetMealsDetail = (paths, params) => ajax(`/v1//${paths.class_id}/meals/detail`, 'GET', params, null)
+export const GetMealsDetail = (paths, params) => ajax(`/v1/${paths.class_id}/meals/detail`, 'GET', params, null)
 
 
-// 查询就餐报表 GET /v1/meals/report?cid=14e21bacf0b54d4ab58c215dde9eeccb&y=2024&m=09
-export const GetMealsReport = (params) => ajax('/v1/meals/report', 'GET', params, null)
+// 查询就餐报表 GET /statistics/monthly/meals/{classId}
+export const GetMonthlyMeals = (paths, params) => ajax(`/v1/statistics/monthly/meals/${paths.class_id}`, 'GET', params, null)
 // 查询每天所有班级的就餐统计 GET /v1/statistics/daily/meals?page=1&page_size=2&y=2024&m=9&d=25
 export const GetDailyMeals = (params) => ajax('/v1/statistics/daily/meals', 'GET', params, null)
 // 查询每月所有班级的就餐统计 GET /v1/statistics/monthly/meals/all?page=1&page_size=300&y=2024&m=1

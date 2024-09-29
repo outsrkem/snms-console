@@ -33,7 +33,7 @@
                             <th colspan="3">晚餐</th>
                         </tr>
                         <tr>
-                            <th>No.</th>
+                            <th class="serial-col">No.</th>
                             <th class="meal-col">班级</th>
                             <th>应有人数</th>
                             <th>实际人数</th>
@@ -241,7 +241,7 @@ export default {
             var html = document.getElementById("print-body").innerHTML;
             const printWindow = window.open("", "_blank");
             printWindow.document.write(
-                `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8" /><title>${title}</title><style>table {width: 100%;border-collapse: collapse;}th, td {border: 1px solid black;text-align: center;}th, td {padding: 3px;/* 表格边框到文字的间距 */}.meal-col {min-width: 100px;}@media print {body::before {content: "${headline}";display: block;text-align: center;font-size: 15px;/* 打印时表格标题字体大小 */font-weight: bold;margin-bottom: 20px;}th, td {font-size: 8pt;/* 打印时表格单元格的字体大小 */}thead {display: table-header-group;}table {width: 100% !important;border-collapse: collapse;}tr {page-break-inside: avoid;page-break-after: auto;}td {page-break-inside: avoid;}@page {margin: 1cm 1.5cm 1cm 1.5cm;/* 页边距上、右、下、左 */}}</style></head><body><div class="print-content"></div></body></html>`
+                `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8" /><title>${title}</title><style>table {width: 100%;border-collapse: collapse;}th, td {border: 1px solid black;text-align: center;}th, td {padding: 3px;/* 表格边框到文字的间距 */}.meal-col {min-width: 100px;}.serial-col {min-width: 40px;}@media print {body::before {content: "${headline}";display: block;text-align: center;font-size: 15px;/* 打印时表格标题字体大小 */font-weight: bold;margin-bottom: 20px;}th, td {font-size: 8pt;/* 打印时表格单元格的字体大小 */}thead {display: table-header-group;}table {width: 100% !important;border-collapse: collapse;}tr {page-break-inside: avoid;page-break-after: auto;}td {page-break-inside: avoid;}@page {margin: 1cm 1.5cm 1cm 1.5cm;/* 页边距上、右、下、左 */}}</style></head><body><div class="print-content"></div></body></html>`
             );
             printWindow.document.close();
             const contentContainer = printWindow.document.querySelector(".print-content");
@@ -276,6 +276,9 @@ th {
     background-color: #f2f2f2;
 }
 .meal-col {
-    min-width: 100px;
+    min-width: 120px;
+}
+.serial-col {
+    min-width: 40px;
 }
 </style>
