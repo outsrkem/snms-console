@@ -47,3 +47,8 @@ export const GetAllClass = (params) => ajax('/v1/class/all', 'GET', params, null
 
 // 班级添加教师 POST /v1/class/add/student
 export const ClassAddTeacher = (data) => ajax('/v1/class/add/student', 'POST', null, data)
+
+// 查询班级详情 GET /v1/classes/14e21bacf0b54d4ab58c215dde9eeccb/details
+export const GetClassesDetails = (params) => ajax(`/v1/classes/details`, 'GET', params, null)
+// 班级和教师解绑 DELETE /v1/classes/teacher
+export const DeleteClassesTeacher = (data) => ajax('/v1/classes/teacher', 'DELETE', null, data)

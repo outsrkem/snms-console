@@ -10,19 +10,14 @@
 
 <script>
 import { Resume } from "@/api/index.js";
-import { ElMessage } from "element-plus";
 export default {
     name: "App",
     data() {
         return { data: "" };
     },
     methods: {
-        loadResume: function () {
-            Resume()
-                .then(() => {})
-                .catch((err) => {
-                    ElMessage.error(err.data);
-                });
+        loadResume: async function () {
+            await Resume();
         },
     },
     created() {
