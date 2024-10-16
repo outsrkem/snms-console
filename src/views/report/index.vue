@@ -13,10 +13,10 @@
             </div>
         </div>
         <el-divider style="margin-top: 10px; margin-bottom: 10px"></el-divider>
-        <DailyMeals v-if="rda === true" />
-        <MonthlyMeals v-if="rms" />
-        <MealsAll v-if="rma"></MealsAll>
-        <UpdateRecord ref="UpdateRecord"></UpdateRecord>
+        <DailyMeals v-if="rda === true" ref="Refresh" />
+        <MonthlyMeals v-if="rms" ref="Refresh" />
+        <MealsAll v-if="rma" ref="Refresh"></MealsAll>
+        <UpdateRecord ref="UpdateRecord" @call-parent="onRefresh"></UpdateRecord>
     </div>
 </template>
 
@@ -87,6 +87,10 @@ export default {
                 };
                 return;
             }
+        },
+        // 刷新子页面页面
+        onRefresh() {
+            this.$refs.Refresh.onRefresh();
         },
         onUpdateRecord() {
             this.$refs.UpdateRecord.openUpdateRecordDialog();

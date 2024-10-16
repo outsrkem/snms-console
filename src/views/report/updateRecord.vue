@@ -211,6 +211,7 @@ export default {
             const paths = { id: this.record };
             UpdateMealsRecord(paths, data)
                 .then(() => {
+                    this.onRefresh(); // 刷新页面
                     this.onCloseDialog();
                     this.$notify({ duration: 2000, title: "操作成功", type: "warning" });
                     this.SubmitLoading = false;
@@ -223,6 +224,10 @@ export default {
                     }
                     this.SubmitLoading = false;
                 });
+        },
+        // 更新页面
+        onRefresh() {
+            this.$emit("call-parent");
         },
         // 关闭弹窗
         onCloseDialog() {
@@ -262,6 +267,7 @@ export default {
             }
             let absent_diners = nameArr.join(",");
             let oldData = this.detailInfo[0];
+            // 检查数据是否修改
             if (expected_diners === oldData.expected_diners && actual_diners === oldData.actual_diners && absent_diners === oldData.absent_diners) {
                 this.checkmsg = "数据没有修改";
                 return;
@@ -274,18 +280,17 @@ export default {
             };
             this.loadUpdateMealsRecord(data);
         },
+        // 查询数据
         onSelectRecord() {
-            // const paths = { class_id: this.from.classId };
-            // const params = { md: this.from.date, mp: this.from.period };
-            if (this.from.date === "") {
+            if (!this.from.date || this.from.date === "") {
                 this.$notify({ duration: 2000, title: "请选择就餐日期", type: "warning" });
                 return;
             }
-            if (this.from.classId === "") {
+            if (!this.from.classId || this.from.classId === "") {
                 this.$notify({ duration: 2000, title: "请选择班级", type: "warning" });
                 return;
             }
-            if (this.from.period === "") {
+            if (!this.from.period || this.from.period === "") {
                 this.$notify({ duration: 2000, title: "请选择就餐时段", type: "warning" });
                 return;
             }
@@ -296,27 +301,4 @@ export default {
 };
 </script>
 
-<style scoped lang="less">
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-th,
-td {
-    border: 1px solid black;
-    text-align: center;
-}
-th,
-td {
-    padding: 5px;
-}
-th {
-    background-color: #f2f2f2;
-}
-.meal-col {
-    min-width: 120px;
-}
-.serial-col {
-    min-width: 40px;
-}
-</style>
+<style scoped lang="less"></style>
