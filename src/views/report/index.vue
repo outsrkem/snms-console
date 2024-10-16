@@ -1,16 +1,22 @@
 <template>
     <div style="min-width: 1000px">
         <MyHeader title="查看报表"></MyHeader>
-        <div style="margin-bottom: 10px; display: flex; justify-content: left; align-items: center">
-            <span>报表类型：</span>
-            <el-button :type="ms.type" size="small" @click="onSwitchReport('ms')">单个班级月报表</el-button>
-            <el-button :type="da.type" size="small" @click="onSwitchReport('da')">所有班级日报表</el-button>
-            <el-button :type="ma.type" size="small" @click="onSwitchReport('ma')">所有班级月报表</el-button>
+        <div class="my_refresh">
+            <div style="margin-bottom: 10px; display: flex; justify-content: left; align-items: center">
+                <span>报表类型：</span>
+                <el-button :type="ms.type" size="small" @click="onSwitchReport('ms')">单个班级月报表</el-button>
+                <el-button :type="da.type" size="small" @click="onSwitchReport('da')">所有班级日报表</el-button>
+                <el-button :type="ma.type" size="small" @click="onSwitchReport('ma')">所有班级月报表</el-button>
+            </div>
+            <div>
+                <el-button type="primary" size="small" @click="onUpdateRecord()">数据订正</el-button>
+            </div>
         </div>
         <el-divider style="margin-top: 10px; margin-bottom: 10px"></el-divider>
         <DailyMeals v-if="rda === true" />
         <MonthlyMeals v-if="rms" />
         <MealsAll v-if="rma"></MealsAll>
+        <UpdateRecord ref="UpdateRecord"></UpdateRecord>
     </div>
 </template>
 
@@ -19,10 +25,10 @@ import MyHeader from "@/views/component/header.vue";
 import DailyMeals from "./dailyMeals.vue";
 import MonthlyMeals from "./monthlyMeals.vue";
 import MealsAll from "./mealsAll.vue";
-// import { GetOwnClass, GetMealsReport } from "@/api/index.js";
+import UpdateRecord from "./updateRecord.vue";
 export default {
     name: "ReportIndex",
-    components: { MyHeader, DailyMeals, MonthlyMeals, MealsAll },
+    components: { MyHeader, DailyMeals, MonthlyMeals, MealsAll, UpdateRecord },
     props: {},
     data() {
         return {
@@ -82,6 +88,9 @@ export default {
                 return;
             }
         },
+        onUpdateRecord() {
+            this.$refs.UpdateRecord.openUpdateRecordDialog();
+        },
     },
     created() {
         this.onSwitchReport(this.$route.query.t);
@@ -89,4 +98,10 @@ export default {
 };
 </script>
 
-<style scoped lang="less"></style>
+<style scoped lang="less">
+.my_refresh {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+</style>

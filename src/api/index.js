@@ -52,3 +52,5 @@ export const ClassAddTeacher = (data) => ajax('/v1/class/add/student', 'POST', n
 export const GetClassesDetails = (params) => ajax(`/v1/classes/details`, 'GET', params, null)
 // 班级和教师解绑 DELETE /v1/classes/teacher
 export const DeleteClassesTeacher = (data) => ajax('/v1/classes/teacher', 'DELETE', null, data)
+// 修改就餐数据 POST /v1/meals/record/{id}
+export const UpdateMealsRecord = (paths,data) => ajax(`/v1/meals/record/${paths.id}`, 'PATCh', null, data)
