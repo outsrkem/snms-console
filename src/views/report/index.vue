@@ -1,22 +1,27 @@
 <template>
-    <div style="min-width: 1000px">
+    <div>
         <MyHeader title="查看报表"></MyHeader>
-        <div class="my_refresh">
-            <div style="margin-bottom: 10px; display: flex; justify-content: left; align-items: center">
-                <span>报表类型：</span>
-                <el-button :type="ms.type" size="small" @click="onSwitchReport('ms')">单个班级月报表</el-button>
-                <el-button :type="da.type" size="small" @click="onSwitchReport('da')">所有班级日报表</el-button>
-                <el-button :type="ma.type" size="small" @click="onSwitchReport('ma')">所有班级月报表</el-button>
-            </div>
-            <div>
-                <el-button type="primary" size="small" @click="onUpdateRecord()">数据订正</el-button>
-            </div>
+        <div v-if="permissionDenied === true">
+            <el-result icon="warning" title="您没有权限" />
         </div>
-        <el-divider style="margin-top: 10px; margin-bottom: 10px"></el-divider>
-        <DailyMeals v-if="rda === true" ref="Refresh" />
-        <MonthlyMeals v-if="rms" ref="Refresh" />
-        <MealsAll v-if="rma" ref="Refresh"></MealsAll>
-        <UpdateRecord ref="UpdateRecord" @call-parent="onRefresh"></UpdateRecord>
+        <div v-else style="min-width: 1050px">
+            <div class="my_refresh">
+                <div style="margin-bottom: 10px; display: flex; justify-content: left; align-items: center">
+                    <span>报表类型：</span>
+                    <el-button :type="ms.type" size="small" @click="onSwitchReport('ms')">单个班级月报表</el-button>
+                    <el-button :type="da.type" size="small" @click="onSwitchReport('da')">所有班级日报表</el-button>
+                    <el-button :type="ma.type" size="small" @click="onSwitchReport('ma')">所有班级月报表</el-button>
+                </div>
+                <div>
+                    <el-button type="primary" size="small" @click="onUpdateRecord()">数据订正</el-button>
+                </div>
+            </div>
+            <el-divider style="margin-top: 10px; margin-bottom: 10px"></el-divider>
+            <DailyMeals v-if="rda === true" ref="Refresh" />
+            <MonthlyMeals v-if="rms" ref="Refresh" @permission-message="PermissionMessage" />
+            <MealsAll v-if="rma" ref="Refresh"></MealsAll>
+            <UpdateRecord ref="UpdateRecord" @call-parent="onRefresh"></UpdateRecord>
+        </div>
     </div>
 </template>
 
@@ -32,6 +37,7 @@ export default {
     props: {},
     data() {
         return {
+            permissionDenied: "false",
             report: "da", // da, ma, ms
             da: {
                 //所有班级日报表
@@ -94,6 +100,10 @@ export default {
         },
         onUpdateRecord() {
             this.$refs.UpdateRecord.openUpdateRecordDialog();
+        },
+        // 子页面返回是否有权限
+        PermissionMessage(msg) {
+            this.permissionDenied = msg;
         },
     },
     created() {

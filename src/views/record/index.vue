@@ -12,21 +12,29 @@
             <el-collapse-item
                 v-for="(item, index) in detailInfo"
                 :key="index"
-                :title="item.meal_date + '     ' + formatPeriod(item.meal_period)"
+                :title="item.dining_date + '     ' + formatPeriod(item.period)"
                 :name="index"
             >
                 <div>
                     <el-text>班级：{{ showClassName(item.class_id) }}</el-text>
                 </div>
                 <div>
-                    <el-text>应就餐人数：{{ item.expected_diners }}</el-text>
+                    <el-text>预期就餐人数：{{ item.expected }}人</el-text>
                 </div>
                 <div>
-                    <el-text>实际就餐人数：{{ item.actual_diners }}</el-text>
+                    <el-text>实际就餐人数：{{ item.actual }}人</el-text>
                 </div>
                 <div>
-                    <el-text>未就餐学生：</el-text>
-                    <span v-for="(item, index) in formatStuName(item.absent_diners)" :key="index">
+                    <el-text>食堂未就餐（{{ item.canteen_number }}人）：</el-text>
+                    <span v-for="(item, index) in formatStuName(item.canteen_absent_diners)" :key="index">
+                        <span style="margin-left: 2px; margin-right: 2px"
+                            ><el-tag type="primary" size="small">{{ item }}</el-tag>
+                        </span>
+                    </span>
+                </div>
+                <div>
+                    <el-text>企业未就餐（{{ item.enterprise_number }}人）：</el-text>
+                    <span v-for="(item, index) in formatStuName(item.enterprise_absent_diners)" :key="index">
                         <span style="margin-left: 2px; margin-right: 2px"
                             ><el-tag type="primary" size="small">{{ item }}</el-tag>
                         </span>

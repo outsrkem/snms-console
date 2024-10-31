@@ -10,6 +10,7 @@
 
 <script>
 import { Resume } from "@/api/index.js";
+import { loadOptions } from "@/utils/common.js";
 export default {
     name: "App",
     data() {
@@ -22,6 +23,7 @@ export default {
     },
     created() {
         this.loadResume();
+        loadOptions();
         // document.title = "学生营养餐就餐记录系统";
     },
 };

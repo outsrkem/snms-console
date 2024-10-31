@@ -14,6 +14,8 @@ import ajax from '../api/ajax'
 // export const logout = () => ajax('/v1/user/logout', 'POST')
 // export const basicInfo = () => ajax('/v1/uias/user/basicInfo', 'GET', null, null)
 
+// 获取配置
+export const Options = () => ajax('/v1/options', 'GET')
 // // 获取账号
 // export const GetAccount = (params) => ajax('/v1/uias/user/center/account', 'GET', params, null)
 export const Resume = () => ajax('/v1/resume', 'POST')
@@ -38,6 +40,8 @@ export const GetMonthlyMeals = (paths, params) => ajax(`/v1/statistics/monthly/m
 export const GetDailyMeals = (params) => ajax('/v1/statistics/daily/meals', 'GET', params, null)
 // 查询每月所有班级的就餐统计 GET /v1/statistics/monthly/meals/all?page=1&page_size=300&y=2024&m=1
 export const GetMonthlyMealsAll = (params) => ajax('/v1/statistics/monthly/meals/all', 'GET', params, null)
+// 打印就餐报表
+export const RequestPrint = (data) => ajax('/v1/report/print', 'POST', null, data)
 
 
 // 查询所有教师 GET /v1/teacher/all?page=1&page_size=10

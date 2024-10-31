@@ -1,11 +1,8 @@
 <template>
-    <div v-if="permissionDenied === true">
-        <el-result icon="warning" title="您没有权限" />
-    </div>
-    <div v-else>
+    <div>
         <div style="margin-bottom: 10px; display: flex; justify-content: left; align-items: center">
             <div style="margin-right: 20px">
-                <h4 style="margin-top: 0px; margin-bottom: 0px">阳坝镇中心小学 ● {{ displayClass }}</h4>
+                <h4 style="margin-top: 0px; margin-bottom: 0px">{{ schoolName }} ● {{ displayClass }}</h4>
             </div>
 
             <div style="width: 200px; margin-right: 20px">
@@ -21,72 +18,114 @@
                 <el-button size="small" type="primary" :loading="bl.tm" @click="onCurrentMonth">本月</el-button>
                 <el-button size="small" type="primary" :loading="bl.nm" @click="onNextMonth">后一月</el-button>
                 <el-button size="small" type="primary" :loading="bl.rf" @click="onRefresh">刷新</el-button>
-                <el-button size="small" type="primary" @click="print(displayClass)">打印</el-button>
+                <el-button size="small" type="primary" :loading="bl.pr" @click="onPrint(displayClass)">打印</el-button>
             </div>
         </div>
         <div v-loading="bl.pl">
-            <div v-if="tableData.length === 0"><el-empty :image-size="200" /></div>
-            <div id="print-body" v-else>
+            <!-- <div v-if="tableData.length === 0"><el-empty :image-size="200" /></div> -->
+            <div id="print-body">
                 <table>
                     <tbody>
                         <tr>
                             <th>班级</th>
                             <th>{{ displayClass }}</th>
-                            <!-- <th>班级</th> -->
                             <th colspan="3">早餐</th>
-                            <th colspan="3">午餐</th>
-                            <th colspan="3">晚餐</th>
+                            <th colspan="6">午餐</th>
+                            <th v-if="showDinner" colspan="6">晚餐</th>
                         </tr>
                         <tr>
-                            <th class="serial-col">No.</th>
-                            <th class="meal-col">就餐日期</th>
-                            <th>应有人数</th>
-                            <th>实际人数</th>
-                            <th>未就餐学生</th>
-                            <th>应有人数</th>
-                            <th>实际人数</th>
-                            <th>未就餐学生</th>
-                            <th>应有人数</th>
-                            <th>实际人数</th>
-                            <th>未就餐学生</th>
+                            <th class="serial-col" rowspan="2">No.</th>
+                            <th class="meal-col" rowspan="2">就餐日期</th>
+                            <!-- 早餐 -->
+                            <th rowspan="2">应有人数</th>
+                            <th rowspan="2">实际人数</th>
+                            <th rowspan="2">未就餐学生</th>
+                            <!-- <th colspan="2">企业未就餐</th> -->
+                            <!-- 午餐 -->
+                            <th rowspan="2">应有人数</th>
+                            <th rowspan="2">实际人数</th>
+                            <th colspan="2">食堂未就餐</th>
+                            <th colspan="2">企业未就餐</th>
+                            <!-- 晚餐 -->
+                            <th v-if="showDinner" rowspan="2">应有人数</th>
+                            <th v-if="showDinner" rowspan="2">实际人数</th>
+                            <th v-if="showDinner" colspan="2">食堂未就餐</th>
+                            <th v-if="showDinner" colspan="2">企业未就餐</th>
+                        </tr>
+                        <tr>
+                            <!-- 早餐 -->
+                            <!-- <th>人数</th> -->
+                            <!-- <th>学生</th> -->
+                            <!-- <th>人数</th>
+                            <th>学生</th> -->
+                            <!-- 午餐 -->
+                            <th>人数</th>
+                            <th>学生</th>
+                            <th>人数</th>
+                            <th>学生</th>
+                            <!-- 晚餐 -->
+                            <th v-if="showDinner">人数</th>
+                            <th v-if="showDinner">学生</th>
+                            <th v-if="showDinner">人数</th>
+                            <th v-if="showDinner">学生</th>
                         </tr>
                         <tr v-for="(item, index) in tableData" :key="index">
                             <td>{{ index + 1 }}</td>
-                            <td>{{ item.meal_date }}</td>
-                            <td>{{ item.meals.breakfast.expected_diners }}</td>
-                            <td>{{ item.meals.breakfast.actual_diners }}</td>
-                            <td>{{ item.meals.breakfast.absent_diners }}</td>
-                            <td>{{ item.meals.lunch.expected_diners }}</td>
-                            <td>{{ item.meals.lunch.actual_diners }}</td>
-                            <td>{{ item.meals.lunch.absent_diners }}</td>
-                            <td>{{ item.meals.dinner.expected_diners }}</td>
-                            <td>{{ item.meals.dinner.actual_diners }}</td>
-                            <td>{{ item.meals.dinner.absent_diners }}</td>
+                            <td>{{ item.dining_date }}</td>
+                            <!-- 早餐 -->
+                            <td>{{ item.meals.breakfast.expected }}</td>
+                            <td>{{ item.meals.breakfast.actual }}</td>
+                            <td>{{ item.meals.breakfast.canteen_absent_diners }}</td>
+                            <!-- 午餐 -->
+                            <td>{{ item.meals.lunch.expected }}</td>
+                            <td>{{ item.meals.lunch.actual }}</td>
+                            <td>{{ item.meals.lunch.canteen_number }}</td>
+                            <td>{{ item.meals.lunch.canteen_absent_diners }}</td>
+                            <td>{{ item.meals.lunch.enterprise_number }}</td>
+                            <td>{{ item.meals.lunch.enterprise_absent_diners }}</td>
+                            <!-- 晚餐 -->
+                            <td v-if="showDinner">{{ item.meals.dinner.expected }}</td>
+                            <td v-if="showDinner">{{ item.meals.dinner.actual }}</td>
+                            <td v-if="showDinner">{{ item.meals.dinner.canteen_number }}</td>
+                            <td v-if="showDinner">{{ item.meals.dinner.canteen_absent_diners }}</td>
+                            <td v-if="showDinner">{{ item.meals.dinner.enterprise_number }}</td>
+                            <td v-if="showDinner">{{ item.meals.dinner.enterprise_absent_diners }}</td>
                         </tr>
-                        <tr>
+                        <!-- 没有数据不显示合计行，只显示基础表头 -->
+                        <tr v-if="tableData.length > 0">
                             <td>--</td>
                             <td>合计</td>
-                            <td>{{ calculateTotalExpectedBreakfastDiners }}</td>
-                            <td>{{ calculateBreakfastActualDiners }}</td>
+                            <!-- 早餐 -->
+                            <td>{{ calculateColumn("breakfast", "expected") }}</td>
+                            <td>{{ calculateColumn("breakfast", "actual") }}</td>
                             <td>--</td>
-                            <td>{{ calculateTotalExpecteLunchDiners }}</td>
-                            <td>{{ calculateLunchtActualDiners }}</td>
+                            <!-- 午餐 -->
+                            <td>{{ calculateColumn("lunch", "expected") }}</td>
+                            <td>{{ calculateColumn("lunch", "actual") }}</td>
+                            <td>{{ calculateColumn("lunch", "canteen_number") }}</td>
                             <td>--</td>
-                            <td>{{ calculateTotalExpecteDinnerDiners }}</td>
-                            <td>{{ calculateDinnertActualDiners }}</td>
+                            <td>{{ calculateColumn("lunch", "enterprise_number") }}</td>
                             <td>--</td>
+                            <!-- 晚餐 -->
+                            <td v-if="showDinner">{{ calculateColumn("dinner", "expected") }}</td>
+                            <td v-if="showDinner">{{ calculateColumn("dinner", "actual") }}</td>
+                            <td v-if="showDinner">{{ calculateColumn("dinner", "canteen_number") }}</td>
+                            <td v-if="showDinner">--</td>
+                            <td v-if="showDinner">{{ calculateColumn("dinner", "enterprise_number") }}</td>
+                            <td v-if="showDinner">--</td>
                         </tr>
                     </tbody>
                 </table>
+                <div v-if="tableData.length === 0"><el-empty :image-size="200" /></div>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-import { GetAllClass, GetMonthlyMeals } from "@/api/index.js";
+import { GetAllClass, GetMonthlyMeals, RequestPrint } from "@/api/index.js";
 export default {
-    name: "MonthlyMeals",
+    name: "MonthlyMeals", // 单个班级月报表
     data() {
         return {
             tableData: [],
@@ -106,6 +145,8 @@ export default {
             },
             currentDate: new Date(), // 默认当前日期
             timeoutId: null,
+            options: {},
+            schoolName: "",
         };
     },
     computed: {
@@ -117,56 +158,30 @@ export default {
                 return "";
             }
         },
-        calculateTotalExpectedBreakfastDiners() {
-            // 早餐的“预期用餐者”总数
-            let sum = this.tableData.reduce((sum, item) => {
-                const score = Number(item.meals.breakfast.expected_diners) || 0;
-                return sum + score;
-            }, 0);
-            return sum > 0 ? sum : "";
-        },
-        calculateBreakfastActualDiners() {
-            // 早餐的“实际用餐者”
-            let sum = this.tableData.reduce((sum, item) => {
-                const score = Number(item.meals.breakfast.actual_diners) || 0;
-                return sum + score;
-            }, 0);
-            return sum > 0 ? sum : "";
-        },
-        calculateTotalExpecteDinnerDiners() {
-            // 午餐的“预期用餐者”总数
-            let sum = this.tableData.reduce((sum, item) => {
-                const score = Number(item.meals.dinner.expected_diners) || 0;
-                return sum + score;
-            }, 0);
-            return sum > 0 ? sum : "";
-        },
-        calculateDinnertActualDiners() {
-            // 午餐的“实际用餐者”
-            let sum = this.tableData.reduce((sum, item) => {
-                const score = Number(item.meals.dinner.actual_diners) || 0;
-                return sum + score;
-            }, 0);
-            return sum > 0 ? sum : "";
-        },
-        calculateTotalExpecteLunchDiners() {
-            // 晚餐的“预期用餐者”总数
-            let sum = this.tableData.reduce((sum, item) => {
-                const score = Number(item.meals.lunch.expected_diners) || 0;
-                return sum + score;
-            }, 0);
-            return sum > 0 ? sum : "";
-        },
-        calculateLunchtActualDiners() {
-            // 晚餐的“实际用餐者”
-            let sum = this.tableData.reduce((sum, item) => {
-                const score = Number(item.meals.lunch.actual_diners) || 0;
-                return sum + score;
-            }, 0);
-            return sum > 0 ? sum : "";
+        showDinner() {
+            // 控制是否显示晚餐的表格列
+            let ss = window.localStorage.getItem("COLUMN_OF_REPORT");
+            let cor = JSON.parse(ss);
+            if (cor.dinner === "off") {
+                return false;
+            } else {
+                return true;
+            }
         },
     },
     methods: {
+        // 表格列求和统计
+        calculateColumn(x1, x2) {
+            let sum = this.tableData.reduce((sum, item) => {
+                const score = Number(item.meals[x1][x2]) || 0;
+                return sum + score;
+            }, 0);
+            return sum >= 0 ? sum : "";
+        },
+        loadSchoolName() {
+            let sn = window.localStorage.getItem("SCHOOL_NAME");
+            this.schoolName = sn;
+        },
         loadGetAllClass: function () {
             const params = { page: 1, page_size: 200 };
             GetAllClass(params)
@@ -176,7 +191,8 @@ export default {
                 })
                 .catch((err) => {
                     if (err.status === 403) {
-                        this.permissionDenied = true;
+                        // this.permissionDenied = true;
+                        this.SendPermissionMessage();
                     } else {
                         this.$notify({ duration: 5000, title: err.data, type: "error" });
                     }
@@ -197,11 +213,15 @@ export default {
                 .catch((err) => {
                     this.tableData = [];
                     if (err.status === 403) {
-                        this.permissionDenied = true;
+                        // this.permissionDenied = true;
+                        this.SendPermissionMessage();
                     } else {
                         this.$notify({ duration: 5000, title: err.data, type: "error" });
                     }
                 });
+        },
+        SendPermissionMessage() {
+            this.$emit("permission-message", true);
         },
         onChanClass() {
             this.onRefresh();
@@ -259,10 +279,10 @@ export default {
         onBack() {
             this.$router.push({ name: "home" });
         },
-        print(displayClass) {
-            // 打印功能
-            let title = `查看报表 - ${this.$config.schoolName} - 班级月就餐信息 - ${this.yearMonth}`;
-            let headline = `${this.$config.schoolName} ● ${displayClass}`;
+        executePrint(displayClass) {
+            // 执行打印功能
+            let title = `查看报表 - ${this.schoolName} - 班级月就餐信息 - ${this.yearMonth}`;
+            let headline = `${this.schoolName} ● ${displayClass}`;
             var html = document.getElementById("print-body").innerHTML;
             const printWindow = window.open("", "_blank");
             printWindow.document.write(
@@ -272,6 +292,42 @@ export default {
             const contentContainer = printWindow.document.querySelector(".print-content");
             contentContainer.innerHTML = html;
             printWindow.print();
+        },
+        onPrint(displayClass) {
+            // 打印按钮加载状态
+            this.bl.pr = true;
+            const data = { report_name: "MonthlyMeals" };
+            RequestPrint(data)
+                .then(() => {
+                    // 校验权限，有权限打印
+                    if (this.schoolName === "" || this.schoolName === undefined || this.schoolName === null) {
+                        // 没有获取到学校名称
+                        this.$confirm("没有获取到学校名称，是否继续打印", "警告", {
+                            confirmButtonText: "继续",
+                            cancelButtonText: "取消",
+                            type: "warning",
+                        })
+                            .then(() => {
+                                this.bl.pr = false;
+                                this.executePrint(displayClass);
+                            })
+                            .catch(() => {
+                                this.bl.pr = false;
+                            });
+                    } else {
+                        this.bl.pr = false;
+                        this.executePrint(displayClass);
+                    }
+                })
+                .catch((err) => {
+                    if (err.status === 403) {
+                        // 无权限打印
+                        this.$notify({ duration: 5000, title: "您没有打印权限", type: "warning" });
+                    } else {
+                        this.$notify({ duration: 5000, title: "打印错误", type: "error" });
+                    }
+                    this.bl.pr = false;
+                });
         },
         startCountdown(val = 100) {
             if (this.class_id != "" || val <= 0) {
@@ -286,6 +342,7 @@ export default {
         },
     },
     created() {
+        this.loadSchoolName();
         this.switchButtonLoading("rf");
         this.yearMonth = this.formatDate(new Date());
         this.loadGetAllClass();
