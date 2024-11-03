@@ -138,7 +138,6 @@ export default {
                 pl: false, // 页面加载状态
             },
             timeoutId: null,
-            showDinner: true,
         };
     },
     computed: {

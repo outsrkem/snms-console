@@ -44,47 +44,57 @@
                     </div>
                 </div>
                 <el-divider style="margin-top: 10px; margin-bottom: 10px"></el-divider>
-                <!-- <div>{{ from }}</div> -->
-                <!-- <div>{{ detailInfo }}</div> -->
-                <!-- <el-divider style="margin-bottom: 10px; margin-top: 10px"><el-text>原始数据</el-text></el-divider> -->
+
                 <div>
-                    <el-table :data="detailInfo" style="width: 100%">
-                        <el-table-column prop="meal_date" label="就餐日期" />
-                        <el-table-column label="就餐时段">
-                            <template #default="scope">
-                                <span>{{ displayPeriods(scope.row.meal_period) }}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="班级">
-                            <template #default="scope">
-                                <span>{{ displayClass(scope.row.class_id) }}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column prop="expected_diners" label="应有人数" />
-                        <el-table-column prop="actual_diners" label="实际人数" />
-                        <el-table-column prop="absent_diners" label="未就餐学生" />
+                    <el-table :data="originalData" style="width: 100%">
+                        <el-table-column prop="expected" label="应有人数" />
+                        <el-table-column prop="actual" label="实际人数" />
+                        <el-table-column prop="canteen_absent_diners" label="食堂未就餐学生" />
+                        <el-table-column prop="enterprise_absent_diners" label="企业未就餐学生" />
                     </el-table>
                 </div>
-                <el-divider style="margin-bottom: 20px; margin-top: 20px"><el-text>订正数据</el-text></el-divider>
 
-                <div style="text-align: center; margin-top: 20px; margin-bottom: 20px">
-                    <!-- 父容器，用于水平居中和添加一些顶部间距 -->
-                    <div style="display: flex; justify-content: center; gap: 10px">
-                        <!-- Flexbox 容器，用于水平排列元素并添加间距 -->
-                        <div style="flex: 1; max-width: 150px">
-                            <el-text>应有人数</el-text>
-                            <el-input v-model="updateDate.expected_diners" placeholder="应有人数" />
-                        </div>
-                        <div style="flex: 1; max-width: 150px">
-                            <span>实际人数</span>
-                            <el-input v-model="updateDate.actual_diners" placeholder="实际人数" />
-                        </div>
-                        <div style="flex: 1; max-width: 100%">
-                            <span>未就餐学生(姓名之间使用英文逗号或空格分隔)</span>
-                            <el-input v-model="updateDate.absent_diners" placeholder="未就餐学生" @input="onNameCount()"
-                                ><template #append>{{ nameCount }}</template></el-input
-                            >
-                        </div>
+                <el-divider style="margin-bottom: 20px; margin-top: 20px"><el-text>订正数据</el-text></el-divider>
+                <div style="display: flex">
+                    <div style="width: 50%; padding-right: 10px">
+                        <el-form label-position="top" label-width="auto" :model="detailInfo">
+                            <el-form-item label="应有人数">
+                                <el-input v-model="detailInfo.expected" disabled />
+                            </el-form-item>
+                            <el-form-item label="实际人数">
+                                <el-input v-model="detailInfo.actual" disabled />
+                            </el-form-item>
+                            <el-form-item label="食堂未就餐学生">
+                                <el-input v-model="detailInfo.canteen_absent_diners" disabled>
+                                    <template #append>{{ detailInfo.canteen_number }}人</template>
+                                </el-input>
+                            </el-form-item>
+                            <el-form-item label="企业未就餐学生">
+                                <el-input v-model="detailInfo.enterprise_absent_diners" disabled>
+                                    <template #append>{{ detailInfo.enterprise_number }}人</template>
+                                </el-input>
+                            </el-form-item>
+                        </el-form>
+                    </div>
+                    <div style="width: 50%; padding-left: 10px">
+                        <el-form label-position="top" label-width="auto" :model="updateDate">
+                            <el-form-item label="应有人数">
+                                <el-input v-model="updateDate.expected" @input="onCleanMsg()" />
+                            </el-form-item>
+                            <el-form-item label="实际人数">
+                                <el-input v-model="updateDate.actual" @input="onCleanMsg()" />
+                            </el-form-item>
+                            <el-form-item label="食堂未就餐学生(姓名之间使用英文逗号或空格分隔)">
+                                <el-input v-model="updateDate.canteen_absent_diners" @input="onNameCountCanteen()">
+                                    <template #append>{{ updateDate.canteen_number }}人</template>
+                                </el-input>
+                            </el-form-item>
+                            <el-form-item label="企业未就餐学生(姓名之间使用英文逗号或空格分隔)">
+                                <el-input v-model="updateDate.enterprise_absent_diners" @input="onNameCountEnterprise()">
+                                    <template #append> {{ updateDate.enterprise_number }}人</template>
+                                </el-input>
+                            </el-form-item>
+                        </el-form>
                     </div>
                 </div>
 
@@ -120,16 +130,18 @@ export default {
                 classId: "",
                 date: "",
             },
-            detailInfo: [],
+            originalData: [], // 原始数据列表
+            detailInfo: [], // 本次待修改数据
+            // 更新后的数据
             updateDate: {
-                expected_diners: "",
-                actual_diners: "",
-                absent_diners: "",
+                expected: "",
+                actual: "",
+                canteen_absent_diners: "",
+                enterprise_absent_diners: "",
             },
-            record: "",
+            record: "", // 待修改的数据id
             SubmitDisabled: true,
             SubmitLoading: false,
-            nameCount: "",
             checkmsg: "",
         };
     },
@@ -184,7 +196,8 @@ export default {
         // 查询数据
         loadGetMealsDetail: function () {
             this.updateDate = {};
-            this.detailInfo = [];
+            this.detailInfo = {};
+            this.originalData = [];
             const paths = { class_id: this.from.classId };
             const params = { md: this.from.date, mp: this.from.period };
             GetMealsDetail(paths, params)
@@ -192,17 +205,23 @@ export default {
                     const detail = res.payload.detail;
                     if (detail.length > 0) {
                         this.record = detail[0].id;
-                        this.detailInfo = detail;
-                        this.updateDate.expected_diners = detail[0].expected_diners;
-                        this.updateDate.actual_diners = detail[0].actual_diners;
-                        this.updateDate.absent_diners = detail[0].absent_diners;
+                        this.detailInfo = detail[0];
+                        this.originalData = detail; // 加载原始数据，用表格展示，用于检查数据重复的情况
+                        this.updateDate = {
+                            expected: detail[0].expected,
+                            actual: detail[0].actual,
+                            canteen_number: detail[0].canteen_number,
+                            canteen_absent_diners: detail[0].canteen_absent_diners,
+                            enterprise_number: detail[0].enterprise_number,
+                            enterprise_absent_diners: detail[0].enterprise_absent_diners,
+                        };
                         this.SubmitDisabled = false;
-                        this.onNameCount(); // 计算姓名数目
                     } else {
                         this.$notify({ duration: 2000, title: "没有查询到数据", type: "warning" });
                     }
                 })
                 .catch((err) => {
+                    console.log(err);
                     this.$notify({ duration: 5000, title: "查询失败", message: err.date, type: "error" });
                 });
         },
@@ -213,7 +232,7 @@ export default {
                 .then(() => {
                     this.onRefresh(); // 刷新页面
                     this.onCloseDialog();
-                    this.$notify({ duration: 2000, title: "操作成功", type: "warning" });
+                    this.$notify({ duration: 2000, title: "操作成功", type: "success" });
                     this.SubmitLoading = false;
                 })
                 .catch((err) => {
@@ -239,46 +258,13 @@ export default {
         onCleanData() {
             this.SubmitDisabled = true;
             this.updateDate = {};
-            this.detailInfo = [];
-            this.nameCount = "";
+            this.detailInfo = {};
+            this.originalData = [];
             this.checkmsg = "";
         },
-        // 计算输入了几个姓名
-        onNameCount() {
-            //先将字符串中的逗号替换成空格，在去除两端的空格，英文首位的逗号替换后就多个空格，导致计算多一个人
-            let namse = this.updateDate.absent_diners.replace(/[,]/g, " ").trim();
-            const nameArr = namse === "" ? [] : namse.split(/\s+/);
-            this.nameCount = nameArr.length + "人";
-        },
-        onSubmit() {
-            let expected_diners = Number(this.updateDate.expected_diners); // 预期人数
-            let actual_diners = Number(this.updateDate.actual_diners); // 实际人数
-
-            if (expected_diners < actual_diners) {
-                this.checkmsg = "实际人数超了应有人数";
-                return;
-            }
-            // 处理姓名并检测数目是否匹配
-            let namse = this.updateDate.absent_diners.trim().replace(/,/g, " ").trim();
-            const nameArr = namse === "" ? [] : namse.split(/\s+/);
-            if (nameArr.length != expected_diners - actual_diners) {
-                this.checkmsg = "未就餐学生所填数据不匹配";
-                return;
-            }
-            let absent_diners = nameArr.join(",");
-            let oldData = this.detailInfo[0];
-            // 检查数据是否修改
-            if (expected_diners === oldData.expected_diners && actual_diners === oldData.actual_diners && absent_diners === oldData.absent_diners) {
-                this.checkmsg = "数据没有修改";
-                return;
-            }
-            this.SubmitLoading = true;
-            const data = {
-                expected_diners: expected_diners,
-                actual_diners: actual_diners,
-                absent_diners: absent_diners,
-            };
-            this.loadUpdateMealsRecord(data);
+        // 重置检查消息
+        onCleanMsg() {
+            this.checkmsg = "";
         },
         // 查询数据
         onSelectRecord() {
@@ -295,6 +281,73 @@ export default {
                 return;
             }
             this.loadGetMealsDetail();
+        },
+        // 姓名转换为数组
+        strNameToArr(nameStr) {
+            let namse = nameStr.trim().replace(/,/g, " ").trim();
+            const nameArr = namse === "" ? [] : namse.split(/\s+/);
+            return nameArr;
+        },
+        // 统计有几个学生姓名
+        statisticsStudent(nameStr) {
+            const nameArr = this.strNameToArr(nameStr);
+            return nameArr.length;
+        },
+        // 计算输入了几个姓名（食堂）
+        onNameCountCanteen() {
+            this.onCleanMsg();
+            this.updateDate.canteen_number = this.statisticsStudent(this.updateDate.canteen_absent_diners);
+        },
+        // 计算输入了几个姓名（企业）
+        onNameCountEnterprise() {
+            this.onCleanMsg();
+            this.updateDate.enterprise_number = this.statisticsStudent(this.updateDate.enterprise_absent_diners);
+        },
+        // 提交按钮
+        onSubmit() {
+            let expected = Number(this.updateDate.expected); // 预期人数
+            let actual = Number(this.updateDate.actual); // 实际人数
+            let canteen_number = Number(this.updateDate.canteen_number); //食堂未就餐数目
+            let enterprise_number = Number(this.updateDate.enterprise_number); // 企业未就餐数目
+            let allStudentsWithoutMeals = canteen_number + enterprise_number; // 所有未就餐学生姓名统计之和
+            if (expected < actual) {
+                this.checkmsg = "实际人数超了应有人数";
+                return;
+            }
+            // 处理姓名并检测数目是否匹配
+            if (allStudentsWithoutMeals + actual != expected) {
+                console.log("allStudentsWithoutMeals: ", allStudentsWithoutMeals);
+                console.log("actual: ", actual);
+                console.log("expected: ", expected);
+                this.checkmsg = "未就餐学生所填数据不匹配";
+                return;
+            }
+
+            // 把姓名转换为目标格式(用逗号分隔)
+            let canteen_absent_diners = this.strNameToArr(this.updateDate.canteen_absent_diners).join(",");
+            let enterprise_absent_diners = this.strNameToArr(this.updateDate.enterprise_absent_diners).join(",");
+            let oldData = this.detailInfo;
+            // 检查数据是否修改
+            if (
+                expected === oldData.expected &&
+                actual === oldData.actual &&
+                canteen_absent_diners === oldData.canteen_absent_diners &&
+                enterprise_absent_diners === oldData.enterprise_absent_diners
+            ) {
+                this.checkmsg = "数据没有修改";
+                return;
+            }
+            this.SubmitLoading = true;
+            // 准备提交的数据
+            const data = {
+                expected: expected, // 预期人数
+                actual: actual, // 实际人数
+                canteen_number: canteen_number, // 食堂人数
+                canteen_absent_diners: canteen_absent_diners, // 食堂姓名
+                enterprise_number: enterprise_number, // 企业人数
+                enterprise_absent_diners: enterprise_absent_diners, // 企业姓名
+            };
+            this.loadUpdateMealsRecord(data);
         },
     },
     created() {},

@@ -139,7 +139,6 @@ export default {
             },
             timeoutId: null,
             // currentDate: new Date().toISOString().slice(0, 10), // 默认当前日期
-            showDinner: true,
         };
     },
     computed: {
