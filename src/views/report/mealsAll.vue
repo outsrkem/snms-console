@@ -5,7 +5,7 @@
     <div v-else>
         <div style="margin-bottom: 10px; display: flex; justify-content: left; align-items: center">
             <div style="margin-right: 20px">
-                <h4 style="margin-top: 0px; margin-bottom: 0px">阳坝镇中心小学 ● {{ displayData }}就餐信息</h4>
+                <h4 style="margin-top: 0px; margin-bottom: 0px">{{ schoolName }} ● {{ displayData }}就餐信息</h4>
             </div>
             <div style="margin-right: 20px">
                 <el-date-picker size="small" v-model="yearMonth" type="month" value-format="YYYY-MM" :clearable="false" @change="onChanYearMonth" />

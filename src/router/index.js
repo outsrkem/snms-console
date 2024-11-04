@@ -7,7 +7,7 @@ const Stuclass = () => import('../views/stuclass/index.vue')
 const ClassAddTea = () => import('../views/classAddTea/index.vue')
 
 const routes = [
-    { path: '/', name: 'home', component: Home, meta: { title: '首页 - 营养餐就餐记录系统' } },
+    { path: '/', name: 'home', component: Home, meta: { title: '营养餐就餐记录系统' } },
     { path: '/meals', name: 'meals', component: Meals, meta: { title: '登记就餐数据' } },
     { path: '/report', name: 'report', component: Report, meta: { title: '查看报表' } },
     { path: '/record', name: 'record', component: Record, meta: { title: '查看记录明细' } },

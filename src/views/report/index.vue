@@ -4,7 +4,7 @@
         <div v-if="permissionDenied === true">
             <el-result icon="warning" title="您没有权限" />
         </div>
-        <div v-else style="min-width: 1050px">
+        <div v-else style="min-width: 1080px">
             <div class="my_refresh">
                 <div style="margin-bottom: 10px; display: flex; justify-content: left; align-items: center">
                     <span>报表类型：</span>
