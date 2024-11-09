@@ -4,44 +4,46 @@
         <div class="reminder">
             <p>数据每餐一条，页面最大提供60条数据。</p>
         </div>
-        <el-select v-model="class_id" size="large" @change="onChanClass">
+        <el-select v-model="class_id" @change="onChanClass" placeholder="请联系管理员将您添加到对应的班级">
             <el-option v-for="(item, index) in ownClass" :key="index" :label="item.name" :value="item.id" />
         </el-select>
         <div style="margin-bottom: 10px"></div>
-        <el-collapse v-model="activeName" accordion>
-            <el-collapse-item
-                v-for="(item, index) in detailInfo"
-                :key="index"
-                :title="item.dining_date + '     ' + formatPeriod(item.period)"
-                :name="index"
-            >
-                <div>
-                    <el-text>班级：{{ showClassName(item.class_id) }}</el-text>
-                </div>
-                <div>
-                    <el-text>预期就餐人数：{{ item.expected }}人</el-text>
-                </div>
-                <div>
-                    <el-text>实际就餐人数：{{ item.actual }}人</el-text>
-                </div>
-                <div>
-                    <el-text>食堂未就餐（{{ item.canteen_number }}人）：</el-text>
-                    <span v-for="(item, index) in formatStuName(item.canteen_absent_diners)" :key="index">
-                        <span style="margin-left: 2px; margin-right: 2px"
-                            ><el-tag type="primary" size="small">{{ item }}</el-tag>
+        <div v-loading="loading" style="min-height: 220px">
+            <el-collapse v-model="activeName" accordion>
+                <el-collapse-item
+                    v-for="(item, index) in detailInfo"
+                    :key="index"
+                    :title="item.dining_date + '     ' + formatPeriod(item.period)"
+                    :name="index"
+                >
+                    <div>
+                        <el-text>班级：{{ showClassName(item.class_id) }}</el-text>
+                    </div>
+                    <div>
+                        <el-text>预期就餐人数：{{ item.expected }}人</el-text>
+                    </div>
+                    <div>
+                        <el-text>实际就餐人数：{{ item.actual }}人</el-text>
+                    </div>
+                    <div>
+                        <el-text>食堂未就餐（{{ item.canteen_number }}人）：</el-text>
+                        <span v-for="(item, index) in formatStuName(item.canteen_absent_diners)" :key="index">
+                            <span style="margin-left: 2px; margin-right: 2px"
+                                ><el-tag type="primary" size="small">{{ item }}</el-tag>
+                            </span>
                         </span>
-                    </span>
-                </div>
-                <div>
-                    <el-text>企业未就餐（{{ item.enterprise_number }}人）：</el-text>
-                    <span v-for="(item, index) in formatStuName(item.enterprise_absent_diners)" :key="index">
-                        <span style="margin-left: 2px; margin-right: 2px"
-                            ><el-tag type="primary" size="small">{{ item }}</el-tag>
+                    </div>
+                    <div>
+                        <el-text>企业未就餐（{{ item.enterprise_number }}人）：</el-text>
+                        <span v-for="(item, index) in formatStuName(item.enterprise_absent_diners)" :key="index">
+                            <span style="margin-left: 2px; margin-right: 2px"
+                                ><el-tag type="primary" size="small">{{ item }}</el-tag>
+                            </span>
                         </span>
-                    </span>
-                </div>
-            </el-collapse-item>
-        </el-collapse>
+                    </div>
+                </el-collapse-item>
+            </el-collapse>
+        </div>
     </div>
 </template>
 
@@ -54,23 +56,27 @@ export default {
     props: {},
     data() {
         return {
-            detailInfo: "",
+            detailInfo: [],
             activeName: null,
             ownClass: "",
             class_id: "",
             countdownTimer: null,
+            loading: true,
         };
     },
 
     methods: {
-        loadGetOwnClass: function () {
+        loadGetOwnClass: async function () {
             const params = { page: 1, page_size: 200 };
-            GetOwnClass(params)
-                .then((res) => {
-                    this.ownClass = res.payload.class;
-                    this.class_id = res.payload.class[0]["id"];
-                })
-                .catch(() => {});
+            const res = await GetOwnClass(params).catch(() => {});
+            this.ownClass = res.payload.class;
+            if (res.payload.class.length > 0) {
+                this.class_id = res.payload.class[0]["id"];
+            }
+            if (this.class_id !== "") {
+                this.loadGetMealsDetail();
+            }
+            this.loading = false;
         },
         loadGetMealsDetail: function () {
             const paths = { class_id: this.class_id };
@@ -114,21 +120,12 @@ export default {
             this.activeName = null;
             this.loadGetMealsDetail();
         },
-        startCountdown(val = 100) {
-            if (this.class_id != "" || val <= 0) {
-                clearInterval(this.countdownTimer); // 清除定时器
-                this.loadGetMealsDetail();
-                return;
-            }
-            this.countdownTimer = setTimeout(() => {
-                this.startCountdown(val - 1);
-                // 1秒钟10次
-            }, 100);
+        onRefresh() {
+            this.loadGetOwnClass();
         },
     },
     created() {
-        this.loadGetOwnClass();
-        this.startCountdown();
+        this.onRefresh();
     },
 };
 </script>

@@ -53,58 +53,60 @@
                         <el-table-column prop="enterprise_absent_diners" label="企业未就餐学生" />
                     </el-table>
                 </div>
-
-                <el-divider style="margin-bottom: 20px; margin-top: 20px"><el-text>订正数据</el-text></el-divider>
-                <div style="display: flex">
-                    <div style="width: 50%; padding-right: 10px">
-                        <el-form label-position="top" label-width="auto" :model="detailInfo">
-                            <el-form-item label="应有人数">
-                                <el-input v-model="detailInfo.expected" disabled />
-                            </el-form-item>
-                            <el-form-item label="实际人数">
-                                <el-input v-model="detailInfo.actual" disabled />
-                            </el-form-item>
-                            <el-form-item label="食堂未就餐学生">
-                                <el-input v-model="detailInfo.canteen_absent_diners" disabled>
-                                    <template #append>{{ detailInfo.canteen_number }}人</template>
-                                </el-input>
-                            </el-form-item>
-                            <el-form-item label="企业未就餐学生">
-                                <el-input v-model="detailInfo.enterprise_absent_diners" disabled>
-                                    <template #append>{{ detailInfo.enterprise_number }}人</template>
-                                </el-input>
-                            </el-form-item>
-                        </el-form>
+                <!-- 有数据才展示输入表单 -->
+                <div v-if="originalData.length > 0">
+                    <el-divider style="margin-bottom: 20px; margin-top: 20px"><el-text>订正数据</el-text></el-divider>
+                    <div style="display: flex">
+                        <div style="width: 50%; padding-right: 10px">
+                            <el-form label-position="top" label-width="auto" :model="detailInfo">
+                                <el-form-item label="应有人数">
+                                    <el-input v-model="detailInfo.expected" disabled />
+                                </el-form-item>
+                                <el-form-item label="实际人数">
+                                    <el-input v-model="detailInfo.actual" disabled />
+                                </el-form-item>
+                                <el-form-item label="食堂未就餐学生">
+                                    <el-input v-model="detailInfo.canteen_absent_diners" disabled>
+                                        <template #append>{{ detailInfo.canteen_number }}人</template>
+                                    </el-input>
+                                </el-form-item>
+                                <el-form-item v-if="updateDate.period !== 'breakfast'" label="企业未就餐学生">
+                                    <el-input v-model="detailInfo.enterprise_absent_diners" disabled>
+                                        <template #append>{{ detailInfo.enterprise_number }}人</template>
+                                    </el-input>
+                                </el-form-item>
+                            </el-form>
+                        </div>
+                        <div style="width: 50%; padding-left: 10px">
+                            <el-form label-position="top" label-width="auto" :model="updateDate">
+                                <el-form-item label="应有人数">
+                                    <el-input v-model="updateDate.expected" @input="onCleanMsg()" />
+                                </el-form-item>
+                                <el-form-item label="实际人数">
+                                    <el-input v-model="updateDate.actual" @input="onCleanMsg()" />
+                                </el-form-item>
+                                <el-form-item label="食堂未就餐学生(姓名之间使用英文逗号或空格分隔)">
+                                    <el-input v-model="updateDate.canteen_absent_diners" @input="onNameCountCanteen()">
+                                        <template #append>{{ updateDate.canteen_number }}人</template>
+                                    </el-input>
+                                </el-form-item>
+                                <el-form-item v-if="updateDate.period !== 'breakfast'" label="企业未就餐学生(姓名之间使用英文逗号或空格分隔)">
+                                    <el-input v-model="updateDate.enterprise_absent_diners" @input="onNameCountEnterprise()">
+                                        <template #append> {{ updateDate.enterprise_number }}人</template>
+                                    </el-input>
+                                </el-form-item>
+                            </el-form>
+                        </div>
                     </div>
-                    <div style="width: 50%; padding-left: 10px">
-                        <el-form label-position="top" label-width="auto" :model="updateDate">
-                            <el-form-item label="应有人数">
-                                <el-input v-model="updateDate.expected" @input="onCleanMsg()" />
-                            </el-form-item>
-                            <el-form-item label="实际人数">
-                                <el-input v-model="updateDate.actual" @input="onCleanMsg()" />
-                            </el-form-item>
-                            <el-form-item label="食堂未就餐学生(姓名之间使用英文逗号或空格分隔)">
-                                <el-input v-model="updateDate.canteen_absent_diners" @input="onNameCountCanteen()">
-                                    <template #append>{{ updateDate.canteen_number }}人</template>
-                                </el-input>
-                            </el-form-item>
-                            <el-form-item label="企业未就餐学生(姓名之间使用英文逗号或空格分隔)">
-                                <el-input v-model="updateDate.enterprise_absent_diners" @input="onNameCountEnterprise()">
-                                    <template #append> {{ updateDate.enterprise_number }}人</template>
-                                </el-input>
-                            </el-form-item>
-                        </el-form>
-                    </div>
-                </div>
 
-                <div>
-                    <div style="display: flex; justify-content: flex-end">
-                        <el-text type="danger" style="margin-right: 12px">{{ checkmsg }}</el-text>
-                        <el-button style="width: 100px" @click="onCloseDialog()">取消</el-button>
-                        <el-button style="width: 100px" type="primary" :disabled="SubmitDisabled" :loading="SubmitLoading" @click="onSubmit()"
-                            >确认</el-button
-                        >
+                    <div>
+                        <div style="display: flex; justify-content: flex-end">
+                            <el-text type="danger" style="margin-right: 12px">{{ checkmsg }}</el-text>
+                            <el-button style="width: 100px" @click="onCloseDialog()">取消</el-button>
+                            <el-button style="width: 100px" type="primary" :disabled="SubmitDisabled" :loading="SubmitLoading" @click="onSubmit()"
+                                >确认</el-button
+                            >
+                        </div>
                     </div>
                 </div>
             </div>
@@ -210,6 +212,7 @@ export default {
                         this.updateDate = {
                             expected: detail[0].expected,
                             actual: detail[0].actual,
+                            period: detail[0].period,
                             canteen_number: detail[0].canteen_number,
                             canteen_absent_diners: detail[0].canteen_absent_diners,
                             enterprise_number: detail[0].enterprise_number,

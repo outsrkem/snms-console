@@ -4,7 +4,7 @@
         <div v-if="result.fromt">
             <el-form label-position="top" label-width="auto" :model="fromData" :rules="rules" ref="meal-form">
                 <el-form-item :label="selectLable">
-                    <el-select v-model="fromData.class_id" placeholder="权限不足或无数据">
+                    <el-select v-model="fromData.class_id" placeholder="请联系管理员将您添加到对应的班级">
                         <el-option v-for="item in ownClass" :key="item.value" :label="item.name" :value="item.id" />
                     </el-select>
                 </el-form-item>
@@ -108,7 +108,7 @@ export default {
                 // 输入的数据
                 class_id: "",
                 dining_date: "", // 日期
-                period: "", // 时段
+                period: "", // 时段,不设置默认值是为了让用户选择，防止出错
                 expected: null, //应就餐人数
                 no_meal_num: "", //未就餐人数
                 canteen_absent_diners: "", // 食堂学生
@@ -161,7 +161,11 @@ export default {
             return this.ownClass.find((item) => item.id === this.targetClass.id);
         },
         nameCuntMsg() {
-            return `(食堂${this.nameCunts.canteen}人，企业${this.nameCunts.enterprise}人)`;
+            if (this.fromData.period === "breakfast" || this.fromData.period == "") {
+                return `(食堂${this.nameCunts.canteen + this.nameCunts.enterprise}人)`;
+            } else {
+                return `(食堂${this.nameCunts.canteen}人，企业${this.nameCunts.enterprise}人)`;
+            }
         },
     },
     methods: {
@@ -174,7 +178,7 @@ export default {
                 })
                 .catch((err) => {
                     if (err.status === 403) {
-                        this.selectLable = "选择班级（您没有权限）";
+                        this.selectLable = "选择班级（您没有获取自己班级的权限）";
                     }
                 });
         },
