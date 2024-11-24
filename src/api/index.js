@@ -25,7 +25,8 @@ export const GetOwnClass = (params) => ajax('/v1/class/own', 'GET', params)
 
 // 创建班级 POST /v1/class/setting
 export const CreateClass = (data) => ajax('/v1/class/setting', 'POST', null, data)
-
+// 删除班级
+export const DeleteClass = (data) => ajax('/v1/class/setting', 'DELETE', null, data)
 
 // 登记就餐数据 POST /v1/meals/record/:class_id
 export const RecordMealsData = (paths, data) => ajax(`/v1/meals/record/${paths.class_id}`, 'POST', null, data)
