@@ -3,8 +3,8 @@ name: Devops CI
 on:
   push:
     branches:
+      - "develop*"
       - "build_*"
-      - "master"
   pull_request:
     branches:
       - "master"
