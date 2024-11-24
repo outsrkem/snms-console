@@ -85,8 +85,9 @@ export default {
                             showClose: true,
                             message: err.data,
                             type: "error",
-                            duration: 0,
+                            duration: 2000,
                             grouping: true,
+                            plain: true,
                         });
                     }
                 });
@@ -105,8 +106,9 @@ export default {
                             showClose: true,
                             message: err.data,
                             type: "error",
-                            duration: 0,
+                            duration: 2000,
                             grouping: true,
+                            plain: true,
                         });
                     }
                 });
@@ -122,8 +124,9 @@ export default {
                         showClose: true,
                         message: "添加成功.",
                         type: "success",
-                        duration: 0,
+                        duration: 2000,
                         grouping: true,
+                        plain: true,
                     });
                 })
                 .catch((err) => {
@@ -134,8 +137,9 @@ export default {
                             showClose: true,
                             message: "添加失败",
                             type: "error",
-                            duration: 0,
+                            duration: 2000,
                             grouping: true,
+                            plain: true,
                         });
                     }
                 });
