@@ -51,7 +51,7 @@
 
 <script>
 import MyHeader from "@/views/component/header.vue";
-import { ElMessage } from "element-plus";
+import { msgcon } from "@/utils/message.js";
 import { GetAllTeacher, GetAllClass, ClassAddTeacher, GetClassesDetails, DeleteClassesTeacher } from "@/api/index.js";
 export default {
     name: "ClassAddTeacher",
@@ -79,16 +79,9 @@ export default {
                 })
                 .catch((err) => {
                     if (err.status === 403) {
-                        this.$notify({ duration: 5000, title: "您没有权限", type: "warning" });
+                        this.$message.warning(msgcon("您没有权限"));
                     } else {
-                        ElMessage({
-                            showClose: true,
-                            message: err.data,
-                            type: "error",
-                            duration: 2000,
-                            grouping: true,
-                            plain: true,
-                        });
+                        this.$message.error(msgcon("系统错误"));
                     }
                 });
         },
@@ -100,16 +93,9 @@ export default {
                 })
                 .catch((err) => {
                     if (err.status === 403) {
-                        this.$notify({ duration: 5000, title: "您没有权限", type: "warning" });
+                        this.$message.warning(msgcon("您没有权限"));
                     } else {
-                        ElMessage({
-                            showClose: true,
-                            message: err.data,
-                            type: "error",
-                            duration: 2000,
-                            grouping: true,
-                            plain: true,
-                        });
+                        this.$message.error(msgcon("系统错误"));
                     }
                 });
         },
@@ -120,27 +106,13 @@ export default {
             };
             ClassAddTeacher(data)
                 .then(() => {
-                    ElMessage({
-                        showClose: true,
-                        message: "添加成功.",
-                        type: "success",
-                        duration: 2000,
-                        grouping: true,
-                        plain: true,
-                    });
+                    this.$message.success(msgcon("添加成功"));
                 })
                 .catch((err) => {
                     if (err.status === 403) {
-                        this.$notify({ duration: 5000, title: "您没有权限", type: "warning" });
+                        this.$message.warning(msgcon("您没有权限"));
                     } else {
-                        ElMessage({
-                            showClose: true,
-                            message: "添加失败",
-                            type: "error",
-                            duration: 2000,
-                            grouping: true,
-                            plain: true,
-                        });
+                        this.$message.error(msgcon("添加失败"));
                     }
                 });
         },
@@ -158,7 +130,7 @@ export default {
             };
             DeleteClassesTeacher(data)
                 .then(() => {
-                    this.$notify({ duration: 2000, title: "操作成功", type: "success" });
+                    this.$message.success(msgcon("解绑成功"));
                     this.classDetails = [];
                     this.classList.map((item) => {
                         this.loadGetClassesDetails(item.id);
@@ -166,25 +138,19 @@ export default {
                 })
                 .catch((err) => {
                     if (err.status === 403) {
-                        this.$notify({ duration: 5000, title: "您没有权限", type: "warning" });
+                        this.$message.warning(msgcon("您没有权限"));
                         return;
                     }
                     if (err.status === 404) {
-                        this.$notify({ duration: 5000, title: "请求资源不存在", type: "warning" });
+                        this.$message.warning(msgcon("请求资源不存在"));
                     } else {
-                        this.$notify({ duration: 5000, title: "操作失败", type: "error" });
+                        this.$message.error(msgcon("操作失败"));
                     }
                 });
         },
         onClassAddTea() {
             if (this.classId === "" || this.teacherId === "") {
-                ElMessage({
-                    showClose: true,
-                    message: "未选择班级或教师",
-                    type: "error",
-                    duration: 0,
-                    grouping: true,
-                });
+                this.$message.error(msgcon("未选择班级或教师"));
                 return;
             }
             this.loadClassAddTeacher();
