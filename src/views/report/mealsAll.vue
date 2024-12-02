@@ -228,7 +228,7 @@ export default {
         executePrint(schoolName, displayData) {
             // 打印功能
             let title = `查看报表 - ${schoolName} - 全校每月就餐信息 - ${this.yearMonth}`;
-            let headline = `${schoolName} ● ${displayData}份全年级就餐统计`;
+            let headline = `${schoolName} ● ${displayData}份全校就餐统计`;
             var html = document.getElementById("print-body").innerHTML;
             const printWindow = window.open("", "_blank");
             printWindow.document.write(
