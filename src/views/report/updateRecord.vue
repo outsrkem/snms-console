@@ -49,8 +49,7 @@
                     <el-table :data="originalData" style="width: 100%">
                         <el-table-column prop="expected" label="应有人数" />
                         <el-table-column prop="actual" label="实际人数" />
-                        <el-table-column prop="canteen_absent_diners" label="食堂未就餐学生" />
-                        <el-table-column prop="enterprise_absent_diners" label="企业未就餐学生" />
+                        <el-table-column prop="canteen_absent_diners" label="未就餐学生" />
                     </el-table>
                 </div>
                 <!-- 有数据才展示输入表单 -->
@@ -65,14 +64,9 @@
                                 <el-form-item label="实际人数">
                                     <el-input v-model="detailInfo.actual" disabled />
                                 </el-form-item>
-                                <el-form-item label="食堂未就餐学生">
+                                <el-form-item label="未就餐学生">
                                     <el-input v-model="detailInfo.canteen_absent_diners" disabled>
                                         <template #append>{{ detailInfo.canteen_number }}人</template>
-                                    </el-input>
-                                </el-form-item>
-                                <el-form-item v-if="updateDate.period !== 'breakfast'" label="企业未就餐学生">
-                                    <el-input v-model="detailInfo.enterprise_absent_diners" disabled>
-                                        <template #append>{{ detailInfo.enterprise_number }}人</template>
                                     </el-input>
                                 </el-form-item>
                             </el-form>
@@ -85,14 +79,9 @@
                                 <el-form-item label="实际人数">
                                     <el-input v-model="updateDate.actual" @input="onCleanMsg()" />
                                 </el-form-item>
-                                <el-form-item label="食堂未就餐学生(姓名之间使用英文逗号或空格分隔)">
+                                <el-form-item label="未就餐学生(姓名之间使用英文逗号或空格分隔)">
                                     <el-input v-model="updateDate.canteen_absent_diners" @input="onNameCountCanteen()">
                                         <template #append>{{ updateDate.canteen_number }}人</template>
-                                    </el-input>
-                                </el-form-item>
-                                <el-form-item v-if="updateDate.period !== 'breakfast'" label="企业未就餐学生(姓名之间使用英文逗号或空格分隔)">
-                                    <el-input v-model="updateDate.enterprise_absent_diners" @input="onNameCountEnterprise()">
-                                        <template #append> {{ updateDate.enterprise_number }}人</template>
                                     </el-input>
                                 </el-form-item>
                             </el-form>
@@ -125,6 +114,7 @@ export default {
                 { value: "breakfast", label: "早餐" },
                 { value: "lunch", label: "午餐" },
                 { value: "dinner", label: "晚餐" },
+                { value: "enterprise", label: "企业" },
             ],
             classList: [],
             from: {
