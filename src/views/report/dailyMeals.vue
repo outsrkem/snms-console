@@ -29,45 +29,34 @@
                             <th>{{ displayData }}</th>
                             <!-- <th>班级</th> -->
                             <th colspan="3">早餐</th>
-                            <th colspan="6">午餐</th>
-                            <th v-if="showDinner" colspan="6">晚餐</th>
+                            <th colspan="3">午餐</th>
+                            <th v-if="showDinner" colspan="3">晚餐</th>
+                            <th colspan="3">企业</th>
                         </tr>
                         <tr>
-                            <th class="serial-col" rowspan="2">No.</th>
-                            <th class="meal-col" rowspan="2">班级</th>
+                            <th class="serial-col">No.</th>
+                            <th class="meal-col">班级</th>
                             <!-- 早餐 -->
-                            <th rowspan="2">应有人数</th>
-                            <th rowspan="2">实际人数</th>
-                            <th rowspan="2">未就餐学生</th>
-                            <!-- <th colspan="2">企业未就餐</th> -->
+                            <th>应有人数</th>
+                            <th>实际人数</th>
+                            <th>未就餐学生</th>
+
                             <!-- 午餐 -->
-                            <th rowspan="2">应有人数</th>
-                            <th rowspan="2">实际人数</th>
-                            <th colspan="2">食堂未就餐</th>
-                            <th colspan="2">企业未就餐</th>
+                            <th>应有人数</th>
+                            <th>实际人数</th>
+                            <th>未就餐学生</th>
+
                             <!-- 晚餐 -->
-                            <th v-if="showDinner" rowspan="2">应有人数</th>
-                            <th v-if="showDinner" rowspan="2">实际人数</th>
-                            <th v-if="showDinner" colspan="2">食堂未就餐</th>
-                            <th v-if="showDinner" colspan="2">企业未就餐</th>
+                            <th v-if="showDinner">应有人数</th>
+                            <th v-if="showDinner">实际人数</th>
+                            <th v-if="showDinner">未就餐学生</th>
+
+                            <!-- 企业 -->
+                            <th>应有人数</th>
+                            <th>实际人数</th>
+                            <th>未就餐学生</th>
                         </tr>
-                        <tr>
-                            <!-- 早餐 -->
-                            <!-- <th>人数</th> -->
-                            <!-- <th>学生</th> -->
-                            <!-- <th>人数</th>
-                            <th>学生</th> -->
-                            <!-- 午餐 -->
-                            <th>人数</th>
-                            <th>学生</th>
-                            <th>人数</th>
-                            <th>学生</th>
-                            <!-- 晚餐 -->
-                            <th v-if="showDinner">人数</th>
-                            <th v-if="showDinner">学生</th>
-                            <th v-if="showDinner">人数</th>
-                            <th v-if="showDinner">学生</th>
-                        </tr>
+
                         <tr v-for="(item, index) in tableData" :key="index">
                             <td>{{ index + 1 }}</td>
                             <td>{{ item.class_name }}</td>
@@ -78,17 +67,15 @@
                             <!-- 午餐 -->
                             <td>{{ item.meals.lunch.expected }}</td>
                             <td>{{ item.meals.lunch.actual }}</td>
-                            <td>{{ item.meals.lunch.canteen_number }}</td>
                             <td>{{ item.meals.lunch.canteen_absent_diners }}</td>
-                            <td>{{ item.meals.lunch.enterprise_number }}</td>
-                            <td>{{ item.meals.lunch.enterprise_absent_diners }}</td>
                             <!-- 晚餐 -->
                             <td v-if="showDinner">{{ item.meals.dinner.expected }}</td>
                             <td v-if="showDinner">{{ item.meals.dinner.actual }}</td>
-                            <td v-if="showDinner">{{ item.meals.dinner.canteen_number }}</td>
                             <td v-if="showDinner">{{ item.meals.dinner.canteen_absent_diners }}</td>
-                            <td v-if="showDinner">{{ item.meals.dinner.enterprise_number }}</td>
-                            <td v-if="showDinner">{{ item.meals.dinner.enterprise_absent_diners }}</td>
+                            <!-- 企业 -->
+                            <td>{{ item.meals.enterprise.expected }}</td>
+                            <td>{{ item.meals.enterprise.actual }}</td>
+                            <td>{{ item.meals.enterprise.canteen_absent_diners }}</td>
                         </tr>
                         <!-- 没有数据不显示合计行，只显示基础表头 -->
                         <tr v-if="tableData.length > 0">
@@ -101,17 +88,15 @@
                             <!-- 午餐 -->
                             <td>{{ calculateColumn("lunch", "expected") }}</td>
                             <td>{{ calculateColumn("lunch", "actual") }}</td>
-                            <td>{{ calculateColumn("lunch", "canteen_number") }}</td>
-                            <td>--</td>
-                            <td>{{ calculateColumn("lunch", "enterprise_number") }}</td>
                             <td>--</td>
                             <!-- 晚餐 -->
                             <td v-if="showDinner">{{ calculateColumn("dinner", "expected") }}</td>
                             <td v-if="showDinner">{{ calculateColumn("dinner", "actual") }}</td>
-                            <td v-if="showDinner">{{ calculateColumn("dinner", "canteen_number") }}</td>
                             <td v-if="showDinner">--</td>
-                            <td v-if="showDinner">{{ calculateColumn("dinner", "enterprise_number") }}</td>
-                            <td v-if="showDinner">--</td>
+                            <!-- 企业 -->
+                            <td>{{ calculateColumn("enterprise", "expected") }}</td>
+                            <td>{{ calculateColumn("enterprise", "actual") }}</td>
+                            <td>--</td>
                         </tr>
                     </tbody>
                 </table>

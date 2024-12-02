@@ -26,16 +26,8 @@
                         <el-text>实际就餐人数：{{ item.actual }}人</el-text>
                     </div>
                     <div>
-                        <el-text>食堂未就餐（{{ item.canteen_number }}人）：</el-text>
+                        <el-text>未就餐学生（{{ item.canteen_number }}人）：</el-text>
                         <span v-for="(item, index) in formatStuName(item.canteen_absent_diners)" :key="index">
-                            <span style="margin-left: 2px; margin-right: 2px"
-                                ><el-tag type="primary" size="small">{{ item }}</el-tag>
-                            </span>
-                        </span>
-                    </div>
-                    <div>
-                        <el-text>企业未就餐（{{ item.enterprise_number }}人）：</el-text>
-                        <span v-for="(item, index) in formatStuName(item.enterprise_absent_diners)" :key="index">
                             <span style="margin-left: 2px; margin-right: 2px"
                                 ><el-tag type="primary" size="small">{{ item }}</el-tag>
                             </span>
@@ -105,6 +97,9 @@ export default {
                     break;
                 case "dinner":
                     value = "晚餐";
+                    break;
+                case "enterprise":
+                    value = "企业";
                     break;
             }
             return value;

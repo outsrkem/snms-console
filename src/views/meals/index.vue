@@ -20,9 +20,10 @@
                 </el-form-item>
                 <el-form-item label="就餐时段" prop="period">
                     <el-radio-group v-model="fromData.period">
-                        <el-radio border value="breakfast">早餐</el-radio>
-                        <el-radio border value="lunch">午餐</el-radio>
-                        <el-radio border value="dinner">晚餐</el-radio>
+                        <el-radio border value="breakfast" style="margin-right: 10px">早餐</el-radio>
+                        <el-radio border value="lunch" style="margin-right: 10px">午餐</el-radio>
+                        <el-radio border value="dinner" style="margin-right: 10px">晚餐</el-radio>
+                        <el-radio border value="enterprise">企业</el-radio>
                     </el-radio-group>
                 </el-form-item>
                 <el-form-item label="应就餐人数" prop="expected">
@@ -34,15 +35,15 @@
                 <!-- <el-form-item :label="'未就餐学生：' + noMealNameCunt + '（1人以上用空格分隔）'" prop="absent_diners"> -->
                 <el-form-item :label="`未就餐学生：${nameCuntMsg}；(1人以上用空格分隔)`" prop="absent_diners">
                     <el-input v-model="fromData.canteen_absent_diners" @input="onCountNumber()">
-                        <template #prepend>食堂</template>
+                        <!-- <template #prepend>食堂</template> -->
                     </el-input>
 
-                    <span style="width: 100%; height: 5px"></span>
+                    <!-- <span style="width: 100%; height: 5px"></span>
                     <span v-if="!(fromData.period === 'breakfast') && fromData.period !== ''" style="width: 100%">
                         <el-input v-model="fromData.enterprise_absent_diners" @input="onCountNumber()">
                             <template #prepend>企业</template>
                         </el-input>
-                    </span>
+                    </span> -->
 
                     <div v-if="checkmsg != ''">
                         <el-text type="danger">{{ checkmsg }}</el-text>
@@ -73,10 +74,7 @@
                 <el-text>实际就餐人数: {{ data.actual }} 人</el-text>
             </div>
             <div class="subdialog">
-                <el-text>食堂未就餐: {{ data.canteen_absent_diners }}</el-text>
-            </div>
-            <div class="subdialog">
-                <el-text>企业未就餐: {{ data.enterprise_absent_diners }}</el-text>
+                <el-text>未就餐学生: {{ data.canteen_absent_diners }}</el-text>
             </div>
             <div style="display: flex; justify-content: center; align-items: center; margin-top: 30px">
                 <el-button style="width: 35%" @click="onCance()">返回修改</el-button>
@@ -161,11 +159,7 @@ export default {
             return this.ownClass.find((item) => item.id === this.targetClass.id);
         },
         nameCuntMsg() {
-            if (this.fromData.period === "breakfast" || this.fromData.period == "") {
-                return `(食堂${this.nameCunts.canteen + this.nameCunts.enterprise}人)`;
-            } else {
-                return `(食堂${this.nameCunts.canteen}人，企业${this.nameCunts.enterprise}人)`;
-            }
+            return `(${this.nameCunts.canteen + this.nameCunts.enterprise}人)`;
         },
     },
     methods: {
