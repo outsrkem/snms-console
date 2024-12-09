@@ -25,7 +25,7 @@
             <!-- <div v-if="tableData.length === 0"><el-empty :image-size="200" /></div> -->
             <div id="print-body">
                 <table>
-                    <tbody>
+                    <thead style="display: table-header-group">
                         <tr>
                             <th>班级</th>
                             <th>{{ displayClass }}</th>
@@ -57,7 +57,8 @@
                             <th>实际人数</th>
                             <th>未就餐学生</th>
                         </tr>
-
+                    </thead>
+                    <tbody>
                         <tr v-for="(item, index) in tableData" :key="index">
                             <td>{{ index + 1 }}</td>
                             <td>{{ item.dining_date }}</td>
