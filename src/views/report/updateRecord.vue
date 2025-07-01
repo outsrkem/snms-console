@@ -1,14 +1,6 @@
 <template>
     <div>
-        <el-dialog
-            v-model="dialogVisible"
-            title="数据订正"
-            width="1000"
-            draggable
-            :close-on-click-modal="false"
-            destroy-on-close
-            :before-close="onCloseDialog"
-        >
+        <el-dialog v-model="dialogVisible" title="数据订正" width="1000" draggable :close-on-click-modal="false" destroy-on-close :before-close="onCloseDialog">
             <div style="margin: 20px">
                 <div style="text-align: center; margin-top: 20px">
                     <!-- 父容器，用于水平居中和添加一些顶部间距 -->
@@ -22,8 +14,7 @@
                                 value-format="YYYY-MM-DD"
                                 :clearable="false"
                                 style="width: 100%"
-                                @change="onCleanData"
-                            />
+                                @change="onCleanData" />
                         </div>
 
                         <div style="flex: 1; max-width: 360px">
@@ -196,7 +187,7 @@ export default {
                 .then((res) => {
                     const detail = res.payload.detail;
                     if (detail.length > 0) {
-                        this.record = detail[0].id;
+                        this.record = detail[0].dining_id;
                         this.detailInfo = detail[0];
                         this.originalData = detail; // 加载原始数据，用表格展示，用于检查数据重复的情况
                         this.updateDate = {
@@ -220,7 +211,7 @@ export default {
         },
         // 发送修改数据请求
         loadUpdateMealsRecord: function (data) {
-            const paths = { id: this.record };
+            const paths = { dining_id: this.record };
             UpdateMealsRecord(paths, data)
                 .then(() => {
                     this.onRefresh(); // 刷新页面

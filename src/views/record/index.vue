@@ -14,8 +14,7 @@
                     v-for="(item, index) in detailInfo"
                     :key="index"
                     :title="item.dining_date + '     ' + formatPeriod(item.period)"
-                    :name="index"
-                >
+                    :name="index">
                     <div>
                         <el-text>班级：{{ showClassName(item.class_id) }}</el-text>
                     </div>

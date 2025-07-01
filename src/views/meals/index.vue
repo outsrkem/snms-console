@@ -15,8 +15,7 @@
                         :editable="false"
                         placeholder="日期"
                         value-format="YYYY-MM-DD"
-                        :clearable="false"
-                    />
+                        :clearable="false" />
                 </el-form-item>
                 <el-form-item label="就餐时段" prop="period">
                     <el-radio-group v-model="fromData.period">
@@ -32,19 +31,8 @@
                 <el-form-item label="未就餐人数" prop="no_meal_num">
                     <el-input v-model.number="fromData.no_meal_num" />
                 </el-form-item>
-                <!-- <el-form-item :label="'未就餐学生：' + noMealNameCunt + '（1人以上用空格分隔）'" prop="absent_diners"> -->
                 <el-form-item :label="`未就餐学生：${nameCuntMsg}；(1人以上用空格分隔)`" prop="absent_diners">
-                    <el-input v-model="fromData.canteen_absent_diners" @input="onCountNumber()">
-                        <!-- <template #prepend>食堂</template> -->
-                    </el-input>
-
-                    <!-- <span style="width: 100%; height: 5px"></span>
-                    <span v-if="!(fromData.period === 'breakfast') && fromData.period !== ''" style="width: 100%">
-                        <el-input v-model="fromData.enterprise_absent_diners" @input="onCountNumber()">
-                            <template #prepend>企业</template>
-                        </el-input>
-                    </span> -->
-
+                    <el-input v-model="fromData.canteen_absent_diners" @input="onCountNumber()" />
                     <div v-if="checkmsg != ''">
                         <el-text type="danger">{{ checkmsg }}</el-text>
                     </div>

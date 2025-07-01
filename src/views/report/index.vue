@@ -6,7 +6,7 @@
         </div>
         <div v-else style="min-width: 1080px">
             <div class="my_refresh">
-                <div style="margin-bottom: 10px; display: flex; justify-content: left; align-items: center">
+                <div style="display: flex; justify-content: left; align-items: center">
                     <span>报表类型：</span>
                     <el-button :type="ms.type" size="small" @click="onSwitchReport('ms')">单个班级月报表</el-button>
                     <el-button :type="da.type" size="small" @click="onSwitchReport('da')">所有班级日报表</el-button>
