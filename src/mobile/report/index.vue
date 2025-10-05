@@ -1,58 +1,42 @@
 <template>
     <div>
-        <el-card>
-            <template #header>
-                <div class="my_refresh">
-                    <div>
-                        <el-space>
-                            <span>报表管理</span>
-                            <el-button :type="ms.type" @click="onSwitchReport('ms')">单个班级月报表</el-button>
-                            <el-button :type="da.type" @click="onSwitchReport('da')">所有班级日报表</el-button>
-                            <el-button :type="ma.type" @click="onSwitchReport('ma')">所有班级月报表</el-button>
-                        </el-space>
-                    </div>
-                    <div>
-                        <el-space>
-                            <el-button type="primary" @click="onUpdateRecord()">数据订正</el-button>
-                            <el-button type="primary" :icon="Refresh" @click="onRefresh()" :loading="loading">刷新</el-button>
-                        </el-space>
-                    </div>
+        <MyHeader title="查看报表"></MyHeader>
+        <div v-if="permissionDenied === true">
+            <el-result icon="warning" title="您没有权限" />
+        </div>
+        <div v-else style="min-width: 1080px">
+            <div class="my_refresh">
+                <div style="display: flex; justify-content: left; align-items: center">
+                    <span>报表类型：</span>
+                    <el-button :type="ms.type" size="small" @click="onSwitchReport('ms')">单个班级月报表</el-button>
+                    <el-button :type="da.type" size="small" @click="onSwitchReport('da')">所有班级日报表</el-button>
+                    <el-button :type="ma.type" size="small" @click="onSwitchReport('ma')">所有班级月报表</el-button>
                 </div>
-            </template>
-            <div>
-                <div v-if="permissionDenied === true">
-                    <el-result icon="warning" title="您没有权限" />
-                </div>
-                <div v-else style="min-width: 1080px">
-                    <div class="my_refresh"></div>
-                    <DailyMeals v-if="rda === true" />
-                    <MonthlyMeals v-if="rms" @permission-message="PermissionMessage" />
-                    <MealsAll v-if="rma"></MealsAll>
-                    <UpdateRecord ref="UpdateRecord" @call-parent="onRefresh"></UpdateRecord>
+                <div>
+                    <el-button type="primary" size="small" @click="onUpdateRecord()">数据订正</el-button>
                 </div>
             </div>
-        </el-card>
+            <el-divider style="margin-top: 10px; margin-bottom: 10px"></el-divider>
+            <DailyMeals v-if="rda === true" ref="Refresh" />
+            <MonthlyMeals v-if="rms" ref="Refresh" @permission-message="PermissionMessage" />
+            <MealsAll v-if="rma" ref="Refresh"></MealsAll>
+            <UpdateRecord ref="UpdateRecord" @call-parent="onRefresh"></UpdateRecord>
+        </div>
     </div>
 </template>
 
 <script>
-import { Refresh } from "@element-plus/icons-vue";
+import MyHeader from "../component/header.vue";
 import DailyMeals from "./dailyMeals.vue";
 import MonthlyMeals from "./monthlyMeals.vue";
 import MealsAll from "./mealsAll.vue";
 import UpdateRecord from "./updateRecord.vue";
 export default {
     name: "ReportIndex",
-    components: { DailyMeals, MonthlyMeals, MealsAll, UpdateRecord },
+    components: { MyHeader, DailyMeals, MonthlyMeals, MealsAll, UpdateRecord },
     props: {},
-    setup() {
-        return {
-            Refresh,
-        };
-    },
     data() {
         return {
-            loading: false,
             permissionDenied: "false",
             report: "da", // da, ma, ms
             da: {
@@ -123,10 +107,15 @@ export default {
         },
     },
     created() {
-        this.$globalBus.emit("updateActivePath", "/report");
         this.onSwitchReport(this.$route.query.t);
     },
 };
 </script>
 
-<style scoped lang="less"></style>
+<style scoped lang="less">
+.my_refresh {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+</style>

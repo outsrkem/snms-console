@@ -1,58 +1,76 @@
 <template>
     <div>
-        <my-header title="班级管理"></my-header>
-        <el-tabs v-model="tabsActiveName" class="demo-tabs" @tab-change="onChangeTabs">
-            <el-tab-pane label="创建班级" name="first">
-                <div>
-                    <div class="reminder">
-                        <p>创建班级直接输入对应的数字：如下所示</p>
-                        <p>"一年级（11）班" 输入 111</p>
-                        <p>"三年级（3）班" 输入 303</p>
-                        <p>"五年级（24）班" 输入 524</p>
+        <el-card>
+            <template #header>
+                <div class="my_refresh">
+                    <div>
+                        <span>班级管理</span>
+                        <span style="padding-left: 5px; padding-right: 5px"></span>
                     </div>
-                    <el-form label-position="top" label-width="auto" :model="fromData" :rules="rules">
-                        <el-form-item label="输入班级" prop="clsCode" @input="displayClsName()">
-                            <el-input v-model.number="clsCode" clearable placeholder="示例：304"> </el-input>
-                        </el-form-item>
-                    </el-form>
-                    <div style="margin-bottom: 18px; height: 25px">
-                        <el-text v-if="clsName">输入的班级是：{{ clsName }}</el-text>
-                    </div>
-                    <div style="display: flex; justify-content: center; align-items: center">
-                        <el-button style="width: 100%" type="primary" @click="onCreateClass()">创建班级</el-button>
+                    <div>
+                        <el-space>
+                            <el-button type="primary" @click="onCreateClass()">创建班级</el-button>
+                            <el-button type="primary" :icon="Refresh" @click="onRefresh()" :loading="loading">刷新</el-button>
+                        </el-space>
                     </div>
                 </div>
-            </el-tab-pane>
-            <el-tab-pane label="班级列表" name="second">
-                <div class="reminder">
-                    <p>注意：班级有填报过就餐数据则不能被删除</p>
-                </div>
-                <div v-for="(item, index) in classList" :key="index">
-                    <div class="cls-row">
-                        <el-text>{{ item.name }}</el-text>
-                        <div style="margin-left: auto">
-                            <!-- <el-button size="small" type="">停用</el-button> -->
-                            <span v-if="item.deletable" style="margin-left: 12px">
-                                <el-button size="small" type="danger" @click="onDeleteCls(item.id)">删除</el-button>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </el-tab-pane>
-        </el-tabs>
+            </template>
+            <div>
+                <el-table :data="classDetails" style="width: 100%" v-loading="loading">
+                    <el-table-column prop="name" label="班级名称" width="200" />
+                    <el-table-column prop="zcrs" label="早餐" width="100" />
+                    <el-table-column prop="zwrs" label="午餐" width="100" />
+                    <el-table-column prop="wsrs" label="晚餐" width="100" />
+                    <el-table-column prop="qyrs" label="企业餐" width="100" />
+                    <el-table-column prop="" label="教师">
+                        <template #default="scope">
+                            <div class="flex gap-2">
+                                <el-tag v-for="val in scope.row.teachers" effect="plain"> {{ val.compellation }} </el-tag>
+                            </div>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="操作" width="200">
+                        <template #default="scope">
+                            <el-space>
+                                <el-button link type="primary" @click="onUpdateClass(scope.row)">编辑</el-button>
+                            </el-space>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </div>
+            <div class="pagination">
+                <pagination :pageTotal="pageTotal" :pageSize="pageSize" @CurrentChange="onCurrentChange" @SizeChange="onSizeChange" />
+            </div>
+        </el-card>
     </div>
+    <UpdateClass ref="UpdateClass" />
+    <CreateClassIndex ref="CreateClassIndex" />
 </template>
 
 <script>
-import MyHeader from "@/views/component/header.vue";
+import { Refresh } from "@element-plus/icons-vue";
+import pagination from "../../components/pagination/pagination.vue";
+import { formatTime } from "../../utils/date.js";
 import { msgcon } from "@/utils/message.js";
-import { CreateClass, GetAllClass, DeleteClass } from "@/api/index.js";
+import { withDelay } from "../../utils/common.js";
+import { CreateClass, GetAllClass, DeleteClass, GetClassesDetails } from "@/api/index.js";
+import UpdateClass from "./update.vue";
+import CreateClassIndex from "./create.vue";
 export default {
-    // 班级管理
-    name: "StuClass",
-    components: { MyHeader },
+    name: "StuclassIndex",
+    components: { pagination, UpdateClass, CreateClassIndex },
+    props: {},
+    setup() {
+        return {
+            Refresh,
+        };
+    },
     data() {
         return {
+            loading: false,
+            pageTotal: 0,
+            pageSize: 10,
+            page: 1,
             tabsActiveName: "first",
             fromData: {},
             clsCode: "", // 班级代码
@@ -61,10 +79,26 @@ export default {
                 clsCode: [],
             },
             classList: [],
+            classDetails: [],
         };
     },
     computed: {},
     methods: {
+        formatDate(time) {
+            return formatTime(time);
+        },
+        onCurrentChange(p) {
+            this.page = p;
+            this.loadGetClassesDetails(this.pageSize, p);
+        },
+        onSizeChange(s) {
+            this.pageSize = s;
+            this.page = 1;
+            this.loadGetClassesDetails(s, 1);
+        },
+        onUpdateClass(val) {
+            this.$refs.UpdateClass.openDialog(val);
+        },
         loadCreateClass() {
             const data = { cls: { code: this.clsCode } };
             CreateClass(data)
@@ -77,6 +111,18 @@ export default {
                     } else {
                         this.$message.error(msgcon("创建失败，请检查班级是否已经存在"));
                     }
+                });
+        },
+        loadGetClassesDetails: function (page_size = this.page_size, page = this.page) {
+            this.loading = true;
+            const params = { page, page_size };
+            withDelay(() => GetClassesDetails(params))
+                .then((res) => {
+                    this.classDetails = res.payload.items;
+                    this.pageTotal = res.payload.page_info.total;
+                })
+                .finally(() => {
+                    this.loading = false;
                 });
         },
         loadGetAllClass() {
@@ -119,19 +165,7 @@ export default {
             this.loadGetAllClass();
         },
         onCreateClass() {
-            if (this.clsCode === "") {
-                this.$message.error(msgcon("请输入班级"));
-                return;
-            }
-            if (!Number.isInteger(this.clsCode)) {
-                this.$message.error(msgcon("输入的不是整数"));
-                return;
-            }
-            if (this.clsCode < 101 || this.clsCode > 999) {
-                this.$message.error(msgcon("范围错误，[101,999]"));
-                return;
-            }
-            this.loadCreateClass();
+            this.$refs.CreateClassIndex.openDialog();
         },
         displayClsName() {
             let code = this.clsCode;
@@ -165,28 +199,30 @@ export default {
             }
             this.clsName = _y[a] + "（" + c + "）班";
         },
+        onRefresh() {
+            this.loadGetAllClass(this.pageSize, this.page);
+            this.loadGetClassesDetails();
+        },
     },
-    created() {},
+    created() {
+        this.onRefresh();
+        this.$globalBus.emit("updateActivePath", "/stuclass");
+        this.$globalBus.on("onRefresh", () => {
+            this.onRefresh();
+        });
+    },
+    beforeUnmount() {
+        this.$globalBus.off("onRefresh");
+        this.$globalBus.off("updateActivePath");
+    },
 };
 </script>
 
 <style scoped lang="less">
-.line-row {
-    width: 100%;
-    margin-top: 20px;
-    margin-bottom: 35px;
-}
-h3 {
-    margin-top: 0px;
-    margin-bottom: 0px;
-}
-.cls-row {
+.flex {
     display: flex;
-    align-items: center;
-    border-bottom: 1px solid #ebeef5;
-    padding: 5px;
-    padding-bottom: 10px;
-    padding-top: 10px;
-    height: 24px;
+}
+.gap-2 {
+    gap: 0.5rem;
 }
 </style>

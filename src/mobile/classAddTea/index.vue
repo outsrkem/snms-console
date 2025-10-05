@@ -50,7 +50,7 @@
 </template>
 
 <script>
-import MyHeader from "@/views/component/header.vue";
+import MyHeader from "../component/header.vue";
 import { msgcon } from "@/utils/message.js";
 import { GetAllTeacher, GetAllClass, ClassAddTeacher, GetClassesDetails, DeleteClassesTeacher } from "@/api/index.js";
 export default {
