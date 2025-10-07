@@ -7,14 +7,7 @@
                 </el-select>
             </el-form-item>
             <el-form-item label="就餐日期" prop="dining_date">
-                <el-date-picker
-                    v-model="fromData.dining_date"
-                    type="date"
-                    :editable="false"
-                    placeholder="日期"
-                    value-format="YYYY-MM-DD"
-                    :clearable="false"
-                />
+                <el-date-picker v-model="fromData.dining_date" type="date" :editable="false" placeholder="日期" value-format="YYYY-MM-DD" :clearable="false" />
             </el-form-item>
             <el-form-item label="就餐时段" prop="period">
                 <el-radio-group v-model="fromData.period" @change="handlePeriodChange">
@@ -26,10 +19,9 @@
             </el-form-item>
             <el-form-item label="应就餐人数" prop="expected">
                 <el-input v-model.number="fromData.expected" :readonly="isExpectedReadOnly" placeholder="选择班级和时段后自动填充" />
-                <!-- 移除了数据来源提示的el-text元素 -->
             </el-form-item>
-            <el-form-item label="未就餐人数" prop="no_meal_num">
-                <el-input v-model.number="fromData.no_meal_num" />
+            <el-form-item label="实际就餐人数" prop="actual">
+                <el-input v-model.number="fromData.actual" />
             </el-form-item>
             <el-form-item :label="`未就餐学生：${nameCuntMsg}；(1人以上用空格分隔)`" prop="canteen_absent_diners">
                 <el-input v-model="fromData.canteen_absent_diners" @input="onCountNumber()" />
@@ -56,7 +48,6 @@
         </div>
         <div class="subdialog">
             <el-text>应就餐人数: {{ data.expected }} 人</el-text>
-            <el-text type="danger">（{{ fromData.no_meal_num }}人未就餐）</el-text>
         </div>
         <div class="subdialog">
             <el-text>实际就餐人数: {{ data.actual }} 人</el-text>
@@ -116,12 +107,11 @@ export default {
                 dining_date: "", // 日期
                 period: "", // 时段
                 expected: null, //应就餐人数
-                no_meal_num: "", //未就餐人数
+                actual: "", //实际就餐人数
                 canteen_absent_diners: "", // 食堂未就餐学生
                 enterprise_absent_diners: "", // 企业未就餐学生
             },
             data: {
-                // 待提交数据
                 dining_date: "",
                 period: "",
                 expected: "",
@@ -140,8 +130,8 @@ export default {
                     { required: true, message: "请输入应就餐人数", trigger: "blur" },
                     { validator: validateNonNegative, trigger: ["blur", "change"] },
                 ],
-                no_meal_num: [
-                    { required: true, message: "请输入未就餐人数", trigger: "blur" },
+                actual: [
+                    { required: true, message: "请输入实际就餐人数", trigger: "blur" },
                     { validator: validateNonNegative, trigger: ["blur", "change"] },
                 ],
             },
@@ -157,7 +147,6 @@ export default {
                 canteen: 0,
                 enterprise: 0,
             },
-            // 移除了expectedSource变量
             isExpectedReadOnly: false, // 应就餐人数是否只读
         };
     },
@@ -286,11 +275,15 @@ export default {
                     return;
                 }
                 this.checkmsg = "";
+
+                // 计算未就餐人数（仅用于验证，不提交到后端）
+                const no_meal_num = this.fromData.expected - this.fromData.actual;
+
                 this.data = {
                     dining_date: this.fromData.dining_date,
                     period: this.fromData.period,
                     expected: this.fromData.expected,
-                    actual: this.fromData.expected - this.fromData.no_meal_num,
+                    actual: this.fromData.actual,
                     canteen_number: 0,
                     canteen_absent_diners: "",
                     enterprise_number: 0,
@@ -312,17 +305,17 @@ export default {
                     return;
                 }
 
-                // 检查就餐人数和未就餐人数是否正常
-                if (this.fromData.expected < this.fromData.no_meal_num) {
-                    this.checkmsg = "未就餐人数超了过总人数";
+                // 检查实际就餐人数是否超过应就餐人数
+                if (this.fromData.actual > this.fromData.expected) {
+                    this.checkmsg = "实际就餐人数不能超过应就餐人数";
                     return;
                 }
 
-                // 处理姓名并检测数目是否匹配
+                // 处理姓名并检测数目是否匹配（预期就餐人数=实际就餐人数+未就餐人数）
                 const cad = this.strNameToArr(this.fromData.canteen_absent_diners);
                 const ead = this.strNameToArr(this.fromData.enterprise_absent_diners);
-                if (cad.length + ead.length != this.fromData.no_meal_num) {
-                    this.checkmsg = "未就餐学生姓名与未就餐人数不匹配";
+                if (cad.length + ead.length != no_meal_num) {
+                    this.checkmsg = `未就餐学生应该是${no_meal_num}人（应到${this.fromData.expected}人 - 实到${this.fromData.actual}人）`;
                     return;
                 }
                 this.data.canteen_number = cad.length;
