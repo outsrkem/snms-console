@@ -14,15 +14,14 @@
                 <el-date-picker size="small" v-model="yearMonth" type="month" value-format="YYYY-MM" :clearable="false" @change="onChanYearMonth" />
             </div>
             <div>
-                <el-button size="small" type="primary" :loading="bl.pm" @click="onPreviousMonth">前一月</el-button>
-                <el-button size="small" type="primary" :loading="bl.tm" @click="onCurrentMonth">本月</el-button>
-                <el-button size="small" type="primary" :loading="bl.nm" @click="onNextMonth">后一月</el-button>
-                <el-button size="small" type="primary" :loading="bl.rf" @click="onRefresh">刷新</el-button>
-                <el-button size="small" type="primary" :loading="bl.pr" @click="onPrint(displayClass)">打印</el-button>
+                <el-button size="small" type="success" :loading="bl.pm" @click="onPreviousMonth">前一月</el-button>
+                <el-button size="small" type="success" :loading="bl.tm" @click="onCurrentMonth">本月</el-button>
+                <el-button size="small" type="success" :loading="bl.nm" @click="onNextMonth">后一月</el-button>
+                <el-button size="small" type="success" :loading="bl.rf" @click="onRefresh">刷新</el-button>
+                <el-button size="small" type="success" :loading="bl.pr" @click="onPrint(displayClass)">打印</el-button>
             </div>
         </div>
         <div v-loading="bl.pl">
-            <!-- <div v-if="tableData.length === 0"><el-empty :image-size="200" /></div> -->
             <div id="print-body">
                 <table>
                     <thead style="display: table-header-group">
@@ -109,6 +108,7 @@
 </template>
 
 <script>
+import { withDelay } from "../../utils/common.js";
 import { GetAllClass, GetMonthlyMeals, RequestPrint } from "@/api/index.js";
 export default {
     name: "MonthlyMeals", // 单个班级月报表
@@ -119,7 +119,6 @@ export default {
             class_id: "",
             yearMonth: "",
             displayTable: false,
-            countdownTimer: null, // 全局变量来存储定时器ID
             permissionDenied: false,
             bl: {
                 pm: false, //前一月
@@ -130,15 +129,14 @@ export default {
                 pl: false, // 页面加载状态
             },
             currentDate: new Date(), // 默认当前日期
-            timeoutId: null,
             options: {},
             schoolName: "",
         };
     },
     computed: {
         displayClass() {
-            // 再班级中找到当前选中的id，并获取其班级名称
-            if (this.class_id != "") {
+            // 在班级中找到当前选中的id，并获取其班级名称
+            if (this.class_id !== "") {
                 return this.ownClass.find((item) => item.id === this.class_id).name;
             } else {
                 return "";
@@ -153,6 +151,16 @@ export default {
             } else {
                 return true;
             }
+        },
+    },
+    watch: {
+        class_id: {
+            immediate: true, // 组件初始化时立即执行一次，确保班级ID加载后触发数据请求
+            handler(newClassId) {
+                if (newClassId) {
+                    this.onRefresh();
+                }
+            },
         },
     },
     methods: {
@@ -170,14 +178,13 @@ export default {
         },
         loadGetAllClass: function () {
             const params = { page: 1, page_size: 200 };
-            GetAllClass(params)
+            withDelay(() => GetAllClass(params))
                 .then((res) => {
                     this.ownClass = res.payload.class;
-                    this.class_id = res.payload.class[0]["id"];
+                    this.class_id = res.payload.class[0]?.id || ""; // 可选链避免无班级时报错
                 })
                 .catch((err) => {
                     if (err.status === 403) {
-                        // this.permissionDenied = true;
                         this.SendPermissionMessage();
                     } else {
                         this.$notify({ duration: 5000, title: err.data, type: "error" });
@@ -199,7 +206,6 @@ export default {
                 .catch((err) => {
                     this.tableData = [];
                     if (err.status === 403) {
-                        // this.permissionDenied = true;
                         this.SendPermissionMessage();
                     } else {
                         this.$notify({ duration: 5000, title: err.data, type: "error" });
@@ -257,10 +263,7 @@ export default {
         },
         onRefresh() {
             this.switchButtonLoading("rf");
-            clearTimeout(this.timeoutId);
-            this.timeoutId = setTimeout(() => {
-                this.loadGetMonthlyMeals();
-            }, this.$config.delayTime);
+            this.loadGetMonthlyMeals();
         },
         onBack() {
             this.$router.push({ name: "home" });
@@ -272,7 +275,7 @@ export default {
             var html = document.getElementById("print-body").innerHTML;
             const printWindow = window.open("", "_blank");
             printWindow.document.write(
-                `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8" /><title>${title}</title><style>table {width: 100%;border-collapse: collapse;}th, td {border: 1px solid black;text-align: center;}th, td {padding: 3px;/* 表格边框到文字的间距 */}.meal-col {min-width: 100px;}.serial-col {min-width: 40px;}@media print {body::before {content: "${headline}";display: block;text-align: center;font-size: 15px;/* 打印时表格标题字体大小 */font-weight: bold;margin-bottom: 20px;}th, td {font-size: 8pt;/* 打印时表格单元格的字体大小 */}thead {display: table-header-group;}table {width: 100% !important;border-collapse: collapse;}tr {page-break-inside: avoid;page-break-after: auto;}td {page-break-inside: avoid;}@page {margin: 1cm 1.5cm 1cm 1.5cm;/* 页边距上、右、下、左 */}}</style></head><body><div class="print-content"></div></body></html>`
+                `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8" /><title>${title}</title><style>table {width: 100%;border-collapse: collapse;}th, td {border: 1px solid black;text-align: center;}th, td {padding: 3px;/* 表格边框到文字的间距 */}.meal-col {min-width: 100px;}.serial-col {min-width: 40px;}@media print {body::before {content: "${headline}";display: block;text-align: center;font-size: 15px;/* 打印时表格标题字体大小 */font-weight: bold;margin-bottom: 20px;}th, td {font-size: 8pt;/* 打印时表格单元格的字体大小 */}thead {display: table-header-group;}table {width: 100% !important;border-collapse: collapse;}tr {page-break-inside: avoid;page-break-after: auto;}td {page-break-inside: avoid;}@page {margin: 1cm 1.5cm 1cm 1.5cm;/* 页边距上、右、下、左 */}}</style></head><body><div class="print-content"></div></body></html>`,
             );
             printWindow.document.close();
             const contentContainer = printWindow.document.querySelector(".print-content");
@@ -286,7 +289,7 @@ export default {
             RequestPrint(data)
                 .then(() => {
                     // 校验权限，有权限打印
-                    if (this.schoolName === "" || this.schoolName === undefined || this.schoolName === null) {
+                    if (!this.schoolName) {
                         // 没有获取到学校名称
                         this.$confirm("没有获取到学校名称，是否继续打印", "警告", {
                             confirmButtonText: "继续",
@@ -315,24 +318,12 @@ export default {
                     this.bl.pr = false;
                 });
         },
-        startCountdown(val = 100) {
-            if (this.class_id != "" || val <= 0) {
-                clearInterval(this.countdownTimer); // 清除定时器
-                this.loadGetMonthlyMeals();
-                return;
-            }
-            this.countdownTimer = setTimeout(() => {
-                this.startCountdown(val - 1);
-                // 1秒钟10次
-            }, 300);
-        },
     },
     created() {
         this.loadSchoolName();
         this.switchButtonLoading("rf");
         this.yearMonth = this.formatDate(new Date());
         this.loadGetAllClass();
-        this.startCountdown(); // 使用定时器控制，函数执行时，确保上一个执行完成
     },
 };
 </script>

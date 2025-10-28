@@ -11,11 +11,11 @@
                 <el-date-picker size="small" v-model="yearMonth" type="month" value-format="YYYY-MM" :clearable="false" @change="onChanYearMonth" />
             </div>
             <div>
-                <el-button size="small" type="primary" :loading="bl.pm" @click="onPreviousMonth">前一月</el-button>
-                <el-button size="small" type="primary" :loading="bl.tm" @click="onCurrentMonth">本月</el-button>
-                <el-button size="small" type="primary" :loading="bl.nm" @click="onNextMonth">后一月</el-button>
-                <el-button size="small" type="primary" :loading="bl.rf" @click="onRefresh">刷新</el-button>
-                <el-button size="small" type="primary" :loading="bl.pr" @click="onPrint()">打印</el-button>
+                <el-button size="small" type="success" :loading="bl.pm" @click="onPreviousMonth">前一月</el-button>
+                <el-button size="small" type="success" :loading="bl.tm" @click="onCurrentMonth">本月</el-button>
+                <el-button size="small" type="success" :loading="bl.nm" @click="onNextMonth">后一月</el-button>
+                <el-button size="small" type="success" :loading="bl.rf" @click="onRefresh">刷新</el-button>
+                <el-button size="small" type="success" :loading="bl.pr" @click="onPrint()">打印</el-button>
             </div>
         </div>
         <div v-loading="bl.pl">
@@ -103,8 +103,12 @@
         </div>
     </div>
 </template>
+<!-- 所有班级月报表 -->
 
 <script>
+import { withDelay } from "../../utils/common.js";
+import { isTimestampOver } from "../../utils/date.js";
+import { msgcon } from "../../utils/message.js";
 import { GetMonthlyMealsAll, RequestPrint } from "@/api/index.js";
 export default {
     name: "MealsAll", // 所有班级月报表
@@ -113,18 +117,16 @@ export default {
             tableData: [],
             yearMonth: "",
             displayTable: false,
-            // countdownTimer: null, // 全局变量来存储定时器ID
             permissionDenied: false,
             bl: {
-                pm: false, //前一月
-                tm: false, //本月
-                nm: false, //后一月
-                rf: false, //刷新
-                pr: false, //打印
+                pm: false, // 前一月
+                tm: false, // 本月
+                nm: false, // 后一月
+                rf: false, // 刷新
+                pr: false, // 打印
                 pl: false, // 页面加载状态
             },
-            timeoutId: null,
-            // currentDate: new Date().toISOString().slice(0, 10), // 默认当前日期
+            resptime: null, // 响应时间戳
         };
     },
     computed: {
@@ -160,8 +162,9 @@ export default {
                 y: parts[0],
                 m: parts[1],
             };
-            GetMonthlyMealsAll(params)
+            withDelay(() => GetMonthlyMealsAll(params))
                 .then((res) => {
+                    this.resptime = res.metadata.time; // 保存响应时间戳
                     this.tableData = res.payload.items;
                     this.switchButtonLoading();
                 })
@@ -219,10 +222,7 @@ export default {
         },
         onRefresh() {
             this.switchButtonLoading("rf");
-            clearTimeout(this.timeoutId);
-            this.timeoutId = setTimeout(() => {
-                this.loadGetMonthlyMealsAll();
-            }, this.$config.delayTime);
+            this.loadGetMonthlyMealsAll();
         },
         onBack() {
             this.$router.push({ name: "home" });
@@ -234,7 +234,7 @@ export default {
             var html = document.getElementById("print-body").innerHTML;
             const printWindow = window.open("", "_blank");
             printWindow.document.write(
-                `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8" /><title>${title}</title><style>table {width: 100%;border-collapse: collapse;}th, td {border: 1px solid black;text-align: center;}th, td {padding: 3px;/* 表格边框到文字的间距 */}.meal-col {min-width: 100px;}.serial-col {min-width: 40px;}@media print {body::before {content: "${headline}";display: block;text-align: center;font-size: 15px;/* 打印时表格标题字体大小 */font-weight: bold;margin-bottom: 20px;}th, td {font-size: 8pt;/* 打印时表格单元格的字体大小 */}thead {display: table-header-group;}table {width: 100% !important;border-collapse: collapse;}tr {page-break-inside: avoid;page-break-after: auto;}td {page-break-inside: avoid;}@page {margin: 1cm 1.5cm 1cm 1.5cm;/* 页边距上、右、下、左 */}}</style></head><body><div class="print-content"></div></body></html>`
+                `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8" /><title>${title}</title><style>table {width: 100%;border-collapse: collapse;}th, td {border: 1px solid black;text-align: center;}th, td {padding: 3px;/* 表格边框到文字的间距 */}.meal-col {min-width: 100px;}.serial-col {min-width: 40px;}@media print {body::before {content: "${headline}";display: block;text-align: center;font-size: 15px;/* 打印时表格标题字体大小 */font-weight: bold;margin-bottom: 20px;}th, td {font-size: 8pt;/* 打印时表格单元格的字体大小 */}thead {display: table-header-group;}table {width: 100% !important;border-collapse: collapse;}tr {page-break-inside: avoid;page-break-after: auto;}td {page-break-inside: avoid;}@page {margin: 1cm 1.5cm 1cm 1.5cm;/* 页边距上、右、下、左 */}}</style></head><body><div class="print-content"></div></body></html>`,
             );
             printWindow.document.close();
             const contentContainer = printWindow.document.querySelector(".print-content");
@@ -244,6 +244,12 @@ export default {
         onPrint() {
             // 打印按钮加载状态
             this.bl.pr = true;
+            if (isTimestampOver(this.resptime, 1)) {
+                // 如果数据时1分钟前加载的，就拒绝打印
+                this.$message.warning(msgcon("当前数据已超时，请点击刷新后再打印"));
+                this.bl.pr = false;
+                return;
+            }
             const data = { report_name: "MealsAll" };
             RequestPrint(data)
                 .then(() => {
@@ -287,8 +293,6 @@ export default {
         this.loadSchoolName();
         this.yearMonth = this.formatDate(new Date());
         this.onRefresh();
-        // console.log();
-        // this.loadGetMonthlyMealsAll(this.yearMonth);
     },
 };
 </script>

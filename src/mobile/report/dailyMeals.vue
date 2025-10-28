@@ -11,11 +11,11 @@
                 <el-date-picker size="small" v-model="currentDate" type="date" value-format="YYYY-MM-DD" :clearable="false" @change="onChanData" />
             </div>
             <div>
-                <el-button size="small" type="primary" :loading="bl.pd" @click="onPrevDay">前一天</el-button>
-                <el-button size="small" type="primary" :loading="bl.td" @click="onToday">今天</el-button>
-                <el-button size="small" type="primary" :loading="bl.nd" @click="onNextDay">后一天</el-button>
-                <el-button size="small" type="primary" :loading="bl.rf" @click="onRefresh">刷新</el-button>
-                <el-button size="small" type="primary" :loading="bl.pr" @click="onPrint(displayData)">打印</el-button>
+                <el-button size="small" type="success" :loading="bl.pd" @click="onPrevDay">前一天</el-button>
+                <el-button size="small" type="success" :loading="bl.td" @click="onToday">今天</el-button>
+                <el-button size="small" type="success" :loading="bl.nd" @click="onNextDay">后一天</el-button>
+                <el-button size="small" type="success" :loading="bl.rf" @click="onRefresh">刷新</el-button>
+                <el-button size="small" type="success" :loading="bl.pr" @click="onPrint(displayData)">打印</el-button>
             </div>
         </div>
 
@@ -107,6 +107,7 @@
 </template>
 
 <script>
+import { withDelay } from "../../utils/common.js";
 import { GetDailyMeals, RequestPrint } from "@/api/index.js";
 export default {
     name: "DailyMeals", //  所有班级日报表
@@ -160,7 +161,7 @@ export default {
                 m: parts[1],
                 d: parts[2],
             };
-            GetDailyMeals(params)
+            withDelay(() => GetDailyMeals(params))
                 .then((res) => {
                     this.tableData = res.payload.items;
                     this.switchButtonLoading();
@@ -226,10 +227,7 @@ export default {
         onRefresh() {
             // 刷新
             this.switchButtonLoading("rf");
-            clearTimeout(this.timeoutId);
-            this.timeoutId = setTimeout(() => {
-                this.loadGetDailyMeals();
-            }, this.$config.delayTime);
+            this.loadGetDailyMeals();
         },
         executePrint(schoolName, displayData) {
             // 打印功能， 打印表格数据
@@ -238,7 +236,7 @@ export default {
             var html = document.getElementById("print-body").innerHTML;
             const printWindow = window.open("", "_blank");
             printWindow.document.write(
-                `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8" /><title>${title}</title><style>table {width: 100%;border-collapse: collapse;}th, td {border: 1px solid black;text-align: center;}th, td {padding: 3px;/* 表格边框到文字的间距 */}.meal-col {min-width: 100px;}.serial-col {min-width: 40px;}@media print {body::before {content: "${headline}";display: block;text-align: center;font-size: 15px;/* 打印时表格标题字体大小 */font-weight: bold;margin-bottom: 20px;}th, td {font-size: 8pt;/* 打印时表格单元格的字体大小 */}thead {display: table-header-group;}table {width: 100% !important;border-collapse: collapse;}tr {page-break-inside: avoid;page-break-after: auto;}td {page-break-inside: avoid;}@page {margin: 1cm 1.5cm 1cm 1.5cm;/* 页边距上、右、下、左 */}}</style></head><body><div class="print-content"></div></body></html>`
+                `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8" /><title>${title}</title><style>table {width: 100%;border-collapse: collapse;}th, td {border: 1px solid black;text-align: center;}th, td {padding: 3px;/* 表格边框到文字的间距 */}.meal-col {min-width: 100px;}.serial-col {min-width: 40px;}@media print {body::before {content: "${headline}";display: block;text-align: center;font-size: 15px;/* 打印时表格标题字体大小 */font-weight: bold;margin-bottom: 20px;}th, td {font-size: 8pt;/* 打印时表格单元格的字体大小 */}thead {display: table-header-group;}table {width: 100% !important;border-collapse: collapse;}tr {page-break-inside: avoid;page-break-after: auto;}td {page-break-inside: avoid;}@page {margin: 1cm 1.5cm 1cm 1.5cm;/* 页边距上、右、下、左 */}}</style></head><body><div class="print-content"></div></body></html>`,
             );
             printWindow.document.close();
             const contentContainer = printWindow.document.querySelector(".print-content");

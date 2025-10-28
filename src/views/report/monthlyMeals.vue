@@ -4,7 +4,6 @@
             <div style="margin-right: 20px">
                 <h4 style="margin-top: 0px; margin-bottom: 0px">{{ schoolName }} ● {{ displayClass }}</h4>
             </div>
-
             <div style="width: 200px; margin-right: 20px">
                 <el-select size="small" v-model="class_id" @change="onChanClass">
                     <el-option v-for="(item, index) in ownClass" :key="index" :label="item.name" :value="item.id" />
@@ -14,15 +13,14 @@
                 <el-date-picker size="small" v-model="yearMonth" type="month" value-format="YYYY-MM" :clearable="false" @change="onChanYearMonth" />
             </div>
             <div>
-                <el-button size="small" type="primary" :loading="bl.pm" @click="onPreviousMonth">前一月</el-button>
-                <el-button size="small" type="primary" :loading="bl.tm" @click="onCurrentMonth">本月</el-button>
-                <el-button size="small" type="primary" :loading="bl.nm" @click="onNextMonth">后一月</el-button>
-                <el-button size="small" type="primary" :loading="bl.rf" @click="onRefresh">刷新</el-button>
-                <el-button size="small" type="primary" :loading="bl.pr" @click="onPrint(displayClass)">打印</el-button>
+                <el-button size="small" type="success" :loading="bl.pm" @click="onPreviousMonth">前一月</el-button>
+                <el-button size="small" type="success" :loading="bl.tm" @click="onCurrentMonth">本月</el-button>
+                <el-button size="small" type="success" :loading="bl.nm" @click="onNextMonth">后一月</el-button>
+                <el-button size="small" type="success" :loading="bl.rf" @click="onRefresh">刷新</el-button>
+                <el-button size="small" type="success" :loading="bl.pr" @click="onPrint(displayClass)">打印</el-button>
             </div>
         </div>
         <div v-loading="bl.pl">
-            <!-- <div v-if="tableData.length === 0"><el-empty :image-size="200" /></div> -->
             <div id="print-body">
                 <table>
                     <thead style="display: table-header-group">
@@ -41,17 +39,14 @@
                             <th>应有人数</th>
                             <th>实际人数</th>
                             <th>未就餐学生</th>
-
                             <!-- 午餐 -->
                             <th>应有人数</th>
                             <th>实际人数</th>
                             <th>未就餐学生</th>
-
                             <!-- 晚餐 -->
                             <th v-if="showDinner">应有人数</th>
                             <th v-if="showDinner">实际人数</th>
                             <th v-if="showDinner">未就餐学生</th>
-
                             <!-- 企业 -->
                             <th>应有人数</th>
                             <th>实际人数</th>
@@ -79,7 +74,7 @@
                             <td>{{ item.meals.enterprise.actual }}</td>
                             <td>{{ item.meals.enterprise.canteen_absent_diners }}</td>
                         </tr>
-                        <!-- 没有数据不显示合计行，只显示基础表头 -->
+                        <!-- 没有数据不显示合计行 -->
                         <tr v-if="tableData.length > 0">
                             <td>--</td>
                             <td>合计</td>
@@ -107,8 +102,11 @@
         </div>
     </div>
 </template>
-
+<!-- 单个班级月报表 -->
 <script>
+import { withDelay } from "../../utils/common.js";
+import { isTimestampOver } from "../../utils/date.js";
+import { msgcon } from "../../utils/message.js";
 import { GetAllClass, GetMonthlyMeals, RequestPrint } from "@/api/index.js";
 export default {
     name: "MonthlyMeals", // 单个班级月报表
@@ -118,221 +116,209 @@ export default {
             ownClass: "",
             class_id: "",
             yearMonth: "",
-            displayTable: false,
-            countdownTimer: null, // 全局变量来存储定时器ID
-            permissionDenied: false,
             bl: {
-                pm: false, //前一月
-                tm: false, //本月
-                nm: false, //后一月
-                rf: false, //刷新
-                pr: false, //打印
-                pl: false, // 页面加载状态
+                // 按钮加载状态集合
+                pm: false, // 前一月
+                tm: false, // 本月
+                nm: false, // 后一月
+                rf: false, // 刷新
+                pr: false, // 打印
+                pl: false, // 页面加载
             },
             currentDate: new Date(), // 默认当前日期
-            timeoutId: null,
             options: {},
             schoolName: "",
+            resptime: null, // 响应时间戳（用于打印超时判断）
         };
     },
     computed: {
         displayClass() {
-            // 再班级中找到当前选中的id，并获取其班级名称
-            if (this.class_id != "") {
-                return this.ownClass.find((item) => item.id === this.class_id).name;
-            } else {
-                return "";
-            }
+            // 匹配当前选中班级名称（可选链避免无数据报错）
+            return this.class_id ? this.ownClass.find((item) => item.id === this.class_id)?.name || "" : "";
         },
         showDinner() {
-            // 控制是否显示晚餐的表格列
-            let ss = window.localStorage.getItem("COLUMN_OF_REPORT");
-            let cor = JSON.parse(ss);
-            if (cor.dinner === "off") {
-                return false;
-            } else {
-                return true;
-            }
+            // 从本地存储控制晚餐列显示/隐藏，默认显示
+            const cor = JSON.parse(window.localStorage.getItem("COLUMN_OF_REPORT") || "{}");
+            return cor.dinner !== "off";
+        },
+    },
+    watch: {
+        // 监听班级ID变化，有值时加载数据（初始化立即执行）
+        class_id: {
+            immediate: true,
+            handler(newVal) {
+                if (newVal) this.loadGetMonthlyMeals();
+            },
         },
     },
     methods: {
-        // 表格列求和统计
+        // 表格列求和（x1=餐别类型，x2=统计字段：expected/actual）
         calculateColumn(x1, x2) {
-            let sum = this.tableData.reduce((sum, item) => {
-                const score = Number(item.meals[x1][x2]) || 0;
-                return sum + score;
+            return this.tableData.reduce((sum, item) => {
+                const val = Number(item.meals[x1][x2]) || 0;
+                return sum + val;
             }, 0);
-            return sum >= 0 ? sum : "";
         },
+        // 加载学校名称（从本地存储获取，默认空字符串）
         loadSchoolName() {
-            let sn = window.localStorage.getItem("SCHOOL_NAME");
-            this.schoolName = sn;
+            this.schoolName = window.localStorage.getItem("SCHOOL_NAME") || "";
         },
-        loadGetAllClass: function () {
-            const params = { page: 1, page_size: 200 };
-            GetAllClass(params)
+        // 加载所有班级列表
+        loadGetAllClass() {
+            GetAllClass({ page: 1, page_size: 200 })
                 .then((res) => {
                     this.ownClass = res.payload.class;
-                    this.class_id = res.payload.class[0]["id"];
+                    this.class_id = res.payload.class[0]?.id || ""; // 默认选中第一个班级
                 })
                 .catch((err) => {
-                    if (err.status === 403) {
-                        // this.permissionDenied = true;
-                        this.SendPermissionMessage();
-                    } else {
-                        this.$notify({ duration: 5000, title: err.data, type: "error" });
-                    }
+                    if (err.status === 403) this.SendPermissionMessage();
+                    else this.$notify({ duration: 5000, title: err.data, type: "error" });
                 });
         },
-        loadGetMonthlyMeals: function () {
-            let parts = this.yearMonth.split("-");
-            let paths = { class_id: this.class_id };
-            const params = {
-                y: parts[0],
-                m: parts[1],
-            };
-            GetMonthlyMeals(paths, params)
+        // 加载月度就餐数据
+        loadGetMonthlyMeals() {
+            const [y, m] = this.yearMonth.split("-");
+            const paths = { class_id: this.class_id };
+            const params = { y, m };
+
+            withDelay(() => GetMonthlyMeals(paths, params))
                 .then((res) => {
+                    this.resptime = res.metadata.time;
                     this.tableData = res.payload.items;
-                    this.switchButtonLoading();
+                    this.switchButtonLoading(); // 关闭所有加载状态
                 })
                 .catch((err) => {
                     this.tableData = [];
-                    if (err.status === 403) {
-                        // this.permissionDenied = true;
-                        this.SendPermissionMessage();
-                    } else {
-                        this.$notify({ duration: 5000, title: err.data, type: "error" });
-                    }
+                    if (err.status === 403) this.SendPermissionMessage();
+                    else this.$notify({ duration: 5000, title: err.data, type: "error" });
                 });
         },
+        // 发送权限不足事件（给父组件处理）
         SendPermissionMessage() {
             this.$emit("permission-message", true);
         },
+        // 切换班级触发刷新
         onChanClass() {
             this.onRefresh();
         },
+        // 切换年月触发刷新
         onChanYearMonth() {
             this.onRefresh();
         },
+        // 控制按钮加载状态：val为按钮标识（如pm/tm），默认关闭所有加载
         switchButtonLoading(val = false) {
-            // 切换按钮的加载状态
-            if (val === "pm" || val === "tm" || val === "nm" || val === "rf" || val === "pr") {
+            if (["pm", "tm", "nm", "rf", "pr"].includes(val)) {
                 this.bl[val] = true;
-                this.bl["pl"] = true;
+                this.bl.pl = true;
             } else {
-                this.bl = {
-                    pm: false,
-                    tm: false,
-                    nm: false,
-                    rf: false,
-                    pr: false,
-                };
+                Object.keys(this.bl).forEach((key) => (this.bl[key] = false));
             }
         },
-        // 辅助方法，用于格式化日期为YYYY-MM
+        // 格式化日期为 YYYY-MM 格式
         formatDate(date) {
-            let year = date.getFullYear();
-            let month = String(date.getMonth() + 1).padStart(2, "0"); // 月份从0开始，所以要+1
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
             return `${year}-${month}`;
         },
+        // 前一月
         onPreviousMonth() {
             this.switchButtonLoading("pm");
-            let date = new Date(this.yearMonth);
+            const date = new Date(this.yearMonth);
             date.setMonth(date.getMonth() - 1);
             this.yearMonth = this.formatDate(date);
-            this.onRefresh(); // 使用刷新函数，可以使刷新按钮也进入loading状态
+            this.onRefresh();
         },
+        // 本月
         onCurrentMonth() {
             this.switchButtonLoading("tm");
             this.yearMonth = this.formatDate(new Date());
             this.onRefresh();
         },
+        // 后一月
         onNextMonth() {
             this.switchButtonLoading("nm");
-            let date = new Date(this.yearMonth);
+            const date = new Date(this.yearMonth);
             date.setMonth(date.getMonth() + 1);
             this.yearMonth = this.formatDate(date);
             this.onRefresh();
         },
+        // 刷新数据
         onRefresh() {
             this.switchButtonLoading("rf");
-            clearTimeout(this.timeoutId);
-            this.timeoutId = setTimeout(() => {
-                this.loadGetMonthlyMeals();
-            }, this.$config.delayTime);
+            this.loadGetMonthlyMeals();
         },
-        onBack() {
-            this.$router.push({ name: "home" });
-        },
+        // 执行打印逻辑
         executePrint(displayClass) {
-            // 执行打印功能
-            let title = `查看报表 - ${this.schoolName} - 班级月就餐信息 - ${this.yearMonth}`;
-            let headline = `${this.schoolName} ● ${displayClass}`;
-            var html = document.getElementById("print-body").innerHTML;
+            const title = `查看报表 - ${this.schoolName} - 班级月就餐信息 - ${this.yearMonth}`;
+            const headline = `${this.schoolName} ● ${displayClass}`;
+            const html = document.getElementById("print-body").innerHTML;
+
+            // 打开新窗口打印
             const printWindow = window.open("", "_blank");
-            printWindow.document.write(
-                `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8" /><title>${title}</title><style>table {width: 100%;border-collapse: collapse;}th, td {border: 1px solid black;text-align: center;}th, td {padding: 3px;/* 表格边框到文字的间距 */}.meal-col {min-width: 100px;}.serial-col {min-width: 40px;}@media print {body::before {content: "${headline}";display: block;text-align: center;font-size: 15px;/* 打印时表格标题字体大小 */font-weight: bold;margin-bottom: 20px;}th, td {font-size: 8pt;/* 打印时表格单元格的字体大小 */}thead {display: table-header-group;}table {width: 100% !important;border-collapse: collapse;}tr {page-break-inside: avoid;page-break-after: auto;}td {page-break-inside: avoid;}@page {margin: 1cm 1.5cm 1cm 1.5cm;/* 页边距上、右、下、左 */}}</style></head><body><div class="print-content"></div></body></html>`
-            );
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="zh-CN">
+                <head>
+                    <meta charset="UTF-8" />
+                    <title>${title}</title>
+                    <style>
+                        table {width: 100%;border-collapse: collapse;}
+                        th, td {border: 1px solid #000;text-align: center;padding: 3px;}
+                        .meal-col {min-width: 100px;}
+                        .serial-col {min-width: 40px;}
+                        @media print {
+                            body::before {content: "${headline}";display: block;text-align: center;font-size: 15px;font-weight: bold;margin-bottom: 20px;}
+                            th, td {font-size: 8pt;}
+                            thead {display: table-header-group;}
+                            table {width: 100% !important;}
+                            tr, td {page-break-inside: avoid;}
+                            @page {margin: 1cm 1.5cm;}
+                        }
+                    </style>
+                </head>
+                <body><div class="print-content">${html}</div></body>
+                </html>
+            `);
             printWindow.document.close();
-            const contentContainer = printWindow.document.querySelector(".print-content");
-            contentContainer.innerHTML = html;
             printWindow.print();
         },
+        // 打印按钮点击事件（含权限校验和超时判断）
         onPrint(displayClass) {
-            // 打印按钮加载状态
             this.bl.pr = true;
-            const data = { report_name: "MonthlyMeals" };
-            RequestPrint(data)
+            // 数据超时（1分钟前加载），提示刷新
+            if (isTimestampOver(this.resptime, 1)) {
+                this.$message.warning(msgcon("当前数据已超时，请点击刷新后再打印"));
+                this.bl.pr = false;
+                return;
+            }
+
+            // 校验打印权限
+            RequestPrint({ report_name: "MonthlyMeals" })
                 .then(() => {
-                    // 校验权限，有权限打印
-                    if (this.schoolName === "" || this.schoolName === undefined || this.schoolName === null) {
-                        // 没有获取到学校名称
-                        this.$confirm("没有获取到学校名称，是否继续打印", "警告", {
+                    this.bl.pr = false;
+                    // 无学校名称时弹窗确认
+                    if (!this.schoolName) {
+                        this.$confirm("没有获取到学校名称，是否继续打印？", "警告", {
                             confirmButtonText: "继续",
                             cancelButtonText: "取消",
                             type: "warning",
-                        })
-                            .then(() => {
-                                this.bl.pr = false;
-                                this.executePrint(displayClass);
-                            })
-                            .catch(() => {
-                                this.bl.pr = false;
-                            });
+                        }).then(() => this.executePrint(displayClass));
                     } else {
-                        this.bl.pr = false;
                         this.executePrint(displayClass);
                     }
                 })
                 .catch((err) => {
-                    if (err.status === 403) {
-                        // 无权限打印
-                        this.$notify({ duration: 5000, title: "您没有打印权限", type: "warning" });
-                    } else {
-                        this.$notify({ duration: 5000, title: "打印错误", type: "error" });
-                    }
                     this.bl.pr = false;
+                    const msg = err.status === 403 ? "您没有打印权限" : "打印错误";
+                    this.$notify({ duration: 5000, title: msg, type: err.status === 403 ? "warning" : "error" });
                 });
-        },
-        startCountdown(val = 100) {
-            if (this.class_id != "" || val <= 0) {
-                clearInterval(this.countdownTimer); // 清除定时器
-                this.loadGetMonthlyMeals();
-                return;
-            }
-            this.countdownTimer = setTimeout(() => {
-                this.startCountdown(val - 1);
-                // 1秒钟10次
-            }, 300);
         },
     },
     created() {
         this.loadSchoolName();
-        this.switchButtonLoading("rf");
-        this.yearMonth = this.formatDate(new Date());
-        this.loadGetAllClass();
-        this.startCountdown(); // 使用定时器控制，函数执行时，确保上一个执行完成
+        this.switchButtonLoading("rf"); // 初始化时开启刷新按钮加载状态
+        this.yearMonth = this.formatDate(new Date()); // 默认当前年月
+        this.loadGetAllClass(); // 加载班级列表
     },
 };
 </script>
@@ -344,11 +330,8 @@ table {
 }
 th,
 td {
-    border: 1px solid black;
+    border: 1px solid #000;
     text-align: center;
-}
-th,
-td {
     padding: 5px;
 }
 th {
