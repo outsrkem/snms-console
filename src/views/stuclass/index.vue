@@ -5,7 +5,6 @@
                 <div class="my_refresh">
                     <div>
                         <span>班级管理</span>
-                        <span style="padding-left: 5px; padding-right: 5px"></span>
                     </div>
                     <div>
                         <el-space>
@@ -16,13 +15,13 @@
                 </div>
             </template>
             <div>
-                <el-table :data="classDetails" style="width: 100%" v-loading="loading">
+                <el-table :data="mergedClassData" style="width: 100%" v-loading="loading">
                     <el-table-column prop="name" label="班级名称" width="200" />
                     <el-table-column prop="zcrs" label="早餐" width="100" />
                     <el-table-column prop="zwrs" label="午餐" width="100" />
                     <el-table-column prop="wsrs" label="晚餐" width="100" />
                     <el-table-column prop="qyrs" label="企业餐" width="100" />
-                    <el-table-column prop="" label="教师">
+                    <el-table-column label="教师">
                         <template #default="scope">
                             <div class="flex gap-2">
                                 <el-tag v-for="val in scope.row.teachers" effect="plain"> {{ val.compellation }} </el-tag>
@@ -33,6 +32,7 @@
                         <template #default="scope">
                             <el-space>
                                 <el-button link type="primary" @click="onUpdateClass(scope.row)">编辑</el-button>
+                                <el-button link type="primary" @click="onDeleteCls(scope.row.id)" v-if="scope.row.deletable">删除</el-button>
                             </el-space>
                         </template>
                     </el-table-column>
@@ -50,16 +50,14 @@
 <script>
 import { Refresh } from "@element-plus/icons-vue";
 import pagination from "../../components/pagination/pagination.vue";
-import { formatTime } from "../../utils/date.js";
 import { msgcon } from "@/utils/message.js";
 import { withDelay } from "../../utils/common.js";
-import { CreateClass, GetAllClass, DeleteClass, GetClassesDetails } from "@/api/index.js";
+import { GetAllClass, DeleteClass, GetClassesDetails } from "@/api/index.js";
 import UpdateClass from "./update.vue";
 import CreateClassIndex from "./create.vue";
 export default {
     name: "StuclassIndex",
     components: { pagination, UpdateClass, CreateClassIndex },
-    props: {},
     setup() {
         return {
             Refresh,
@@ -71,77 +69,78 @@ export default {
             pageTotal: 0,
             pageSize: 10,
             page: 1,
-            tabsActiveName: "first",
-            fromData: {},
-            clsCode: "", // 班级代码
-            clsName: "",
-            rules: {
-                clsCode: [],
-            },
-            classList: [],
-            classDetails: [],
+            classList: [], // GetAllClass接口数据（包含deletable）
+            classDetails: [], // GetClassesDetails接口数据（主数据）
+            mergedClassData: [], // 合并后的数据
         };
     },
-    computed: {},
     methods: {
-        formatDate(time) {
-            return formatTime(time);
-        },
         onCurrentChange(p) {
             this.page = p;
-            this.loadGetClassesDetails(this.pageSize, p);
+            this.loadData(this.pageSize, p);
         },
         onSizeChange(s) {
             this.pageSize = s;
             this.page = 1;
-            this.loadGetClassesDetails(s, 1);
+            this.loadData(s, 1);
         },
         onUpdateClass(val) {
             this.$refs.UpdateClass.openDialog(val);
         },
-        loadCreateClass() {
-            const data = { cls: { code: this.clsCode } };
-            CreateClass(data)
-                .then(() => {
-                    this.$message.success(msgcon("创建成功"));
+        // 合并数据
+        mergeClassData() {
+            // 创建classList的id映射表（key: id, value: 整条数据）
+            const classMap = this.classList.reduce((map, item) => {
+                map[item.id] = item;
+                return map;
+            }, {});
+
+            // 合并逻辑：以classDetails为主，补充classList中的字段（尤其是deletable）
+            this.mergedClassData = this.classDetails.map((detail) => {
+                // 从映射表中找到对应id的记录
+                const classItem = classMap[detail.id] || {};
+                // 合并字段：classItem中的字段（如deletable）覆盖detail中可能存在的同名字段
+                return {
+                    ...detail,
+                    ...classItem,
+                };
+            });
+        },
+
+        // 加载并合并数据
+        loadData(pageSize, page) {
+            this.loading = true;
+            const params = { page, page_size: pageSize };
+
+            // 并行请求两个接口
+            Promise.all([withDelay(() => GetClassesDetails(params)), withDelay(() => GetAllClass(params))])
+                .then(([detailsRes, allRes]) => {
+                    // 存储接口数据（注意接口返回的结构）
+                    this.classDetails = detailsRes.payload.items || [];
+                    this.classList = allRes.payload.class || [];
+                    // 更新总页数
+                    this.pageTotal = detailsRes.payload.page_info?.total || 0;
+                    // 执行合并
+                    this.mergeClassData();
                 })
                 .catch((err) => {
-                    if (err.status === 403) {
-                        this.$message.warning(msgcon("您没有权限"));
-                    } else {
-                        this.$message.error(msgcon("创建失败，请检查班级是否已经存在"));
-                    }
-                });
-        },
-        loadGetClassesDetails: function (page_size = this.page_size, page = this.page) {
-            this.loading = true;
-            const params = { page, page_size };
-            withDelay(() => GetClassesDetails(params))
-                .then((res) => {
-                    this.classDetails = res.payload.items;
-                    this.pageTotal = res.payload.page_info.total;
+                    console.error("加载数据失败:", err);
+                    this.$message.error(msgcon("数据加载失败"));
                 })
                 .finally(() => {
                     this.loading = false;
                 });
-        },
-        loadGetAllClass() {
-            const params = { page: 1, page_size: 300 };
-            GetAllClass(params).then((req) => {
-                this.classList = req.payload.class;
-            });
         },
         loadDeleteClass(ids) {
             const data = { ids: ids };
             DeleteClass(data)
                 .then(() => {
                     this.$message.success(msgcon("删除成功"));
-                    this.loadGetAllClass(); // 删除后重新加载数据
+                    this.loadData(this.pageSize, this.page);
                 })
                 .catch((err) => {
                     if (err.status === 403) {
                         this.$message.warning(msgcon("您没有权限"));
-                        return;
                     } else if (err.status === 409) {
                         this.$message.warning(msgcon("班级有就餐数据，不能删除"));
                     } else if (err.status === 404) {
@@ -151,57 +150,22 @@ export default {
                     }
                 });
         },
-        onDeleteCls(val) {
-            this.$confirm("确认要删除班级吗？", { confirmButtonText: "确定", cancelButtonText: "取消", type: "warning" })
+        onDeleteCls(id) {
+            this.$confirm("确认要删除班级吗？", {
+                confirmButtonText: "确定",
+                cancelButtonText: "取消",
+                type: "warning",
+            })
                 .then(() => {
-                    console.log(val);
-                    let ids = [];
-                    ids.push(val);
-                    this.loadDeleteClass(ids);
+                    this.loadDeleteClass([id]);
                 })
                 .catch(() => {});
-        },
-        onChangeTabs() {
-            this.loadGetAllClass();
         },
         onCreateClass() {
             this.$refs.CreateClassIndex.openDialog();
         },
-        displayClsName() {
-            let code = this.clsCode;
-            if (!Number.isInteger(code)) {
-                // 不是整数
-                this.clsName = "";
-                return;
-            }
-            let _c = code.toString();
-            if (_c == "") {
-                // 输入为空
-                this.clsName = "";
-                return;
-            }
-            let _y = {
-                1: "一年级",
-                2: "二年级",
-                3: "三年级",
-                4: "四年级",
-                5: "五年级",
-                6: "六年级",
-                7: "七年级",
-                8: "八年级",
-                9: "九年级",
-            };
-            let a = _c.slice(0, 1);
-            let b = _c.slice(1);
-            let c = "";
-            if (b.length === 2) {
-                c = parseInt(b);
-            }
-            this.clsName = _y[a] + "（" + c + "）班";
-        },
         onRefresh() {
-            this.loadGetAllClass(this.pageSize, this.page);
-            this.loadGetClassesDetails();
+            this.loadData(this.pageSize, this.page);
         },
     },
     created() {
