@@ -2,11 +2,12 @@
     <div class="admin-layout">
         <header class="header-content">
             <div class="header-left">
-                <el-space :size="10" spacer="">
-                    <span style="padding-left: 160px"></span>
-                    <el-icon class="console-icon"><Menu /></el-icon>
-                    <el-link class="console-name" href="/console">控制台</el-link>
-                </el-space>
+                <div style="padding-left: 170px">
+                    <el-link class="console-name" href="/console">
+                        <el-icon class="console-icon"><Menu /></el-icon>
+                        <span style="margin-left: 10px">控制台</span>
+                    </el-link>
+                </div>
             </div>
             <div class="header-right">
                 <span>{{ dateMessage }}</span>
@@ -102,8 +103,6 @@ export default {
     flex-direction: column;
     height: 100vh;
     overflow: hidden;
-    margin: 0; /* 清除body默认margin导致的留白 */
-    padding: 0;
     min-width: 1200px;
 }
 
@@ -155,28 +154,30 @@ export default {
     width: 200px; /* 固定菜单宽度 */
     background-color: #ffffff; /* 菜单默认白色 */
     border-right: 1px solid #e5e7eb; /* 右侧分隔线 */
+    height: auto;
+    overflow-y: auto;
 }
 
-/* 右侧内容区样式（灰色底色） */
+/* 右侧内容区样式*/
 .admin-content {
-    flex: 1; /* 占满剩余宽度 */
-    background-color: #f9fafb; /* 灰色底色 */
-    padding: 10px; /* 内边距，避免内容贴边 */
-    overflow-y: auto; /* 内容超出时仅右侧出现垂直滚动条 */
-    height: 100%; /* 强制占满主体区高度 */
+    flex: 1;
+    background-color: #f9fafb;
+    padding: 15px;
+    height: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
-/* 4. 修复移动端菜单宽度：避免菜单过宽导致横向滚动 */
 @media (max-width: 768px) {
     .admin-sidebar {
-        width: auto; /* 移动端缩小菜单宽度，适配小屏幕 */
+        width: auto;
     }
     .system-name {
-        font-size: 14px; /* 缩小页眉文字，避免换行 */
+        font-size: 14px;
     }
     .admin-content {
-        background-color: #fff; /* 设置白底 */
-        padding: 0px; /* 取消边距 */
+        background-color: #fff;
+        padding: 0px;
     }
 }
 </style>
