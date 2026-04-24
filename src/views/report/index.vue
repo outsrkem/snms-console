@@ -24,9 +24,8 @@
                 <div v-if="permissionDenied === true">
                     <el-result icon="warning" title="您没有权限" />
                 </div>
-                <div v-else style="min-width: 1080px">
+                <div v-else>
                     <div class="my_refresh"></div>
-                    <!-- 修复：给每个子组件设置唯一ref，避免重复覆盖 -->
                     <DailyMeals v-if="rda === true" ref="dailyMealsRef" />
                     <MonthlyMeals v-if="rms" ref="monthlyMealsRef" @permission-message="PermissionMessage" />
                     <MealsAll v-if="rma" ref="mealsAllRef" />

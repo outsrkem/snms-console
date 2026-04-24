@@ -1,32 +1,28 @@
 <template>
-    <div class="container-main">
-        <div class="container-1">
-            <div class="container-2">
-                <router-view />
-            </div>
-        </div>
+    <div>
+        <router-view />
     </div>
 </template>
 
 <script>
-import { Resume } from "@/api/index.js";
-import { loadOptions } from "@/utils/common.js";
+import { Resume } from "./api/index.js";
+import { loadOptions } from "./utils/common.js";
+
 export default {
     name: "App",
-    data() {
-        return { data: "" };
-    },
     methods: {
-        loadResume: async function () {
+        // 初始化 resume 配置（异步方法规范写法）
+        async initResume() {
             await Resume();
         },
     },
+
+    // 生命周期：页面创建时执行全局初始化
     created() {
-        this.loadResume();
-        loadOptions();
-        // document.title = "学生营养餐就餐记录系统";
+        this.initResume();
+        loadOptions(); // 加载全局公共选项
     },
 };
 </script>
 
-<style></style>
+<style scoped></style>
